@@ -36,11 +36,13 @@ class ScriptHandler(BaseHandler):
                )
     model = models.Script
 
-    def read(self, request, script_id=None):
+    def read(self, request, script_id=None, script_name=None):
         base = models.Script.objects
 
         if script_id:
             return base.get(pk=script_id)
+        elif script_name:
+            return base.filter(name__iexact=script_name)
         else:
             return base.all()  # Or base.filter(...)
 
