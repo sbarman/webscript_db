@@ -76,6 +76,36 @@ class ScriptHandler(BaseHandler):
         else:
             super(ScriptHandler, self).create(request)
 
+class ReplayHandler(BaseHandler):
+    allowed_methods = ('GET', 'POST',)  # 'PUT')
+    fields = ('id',
+              ('script', ('id'))
+             )
+    model = models.Replay
+
+    def read(self, request):
+        base = models.Replay.objects
+        return base.all()  # Or base.filter(...)
+
+    # @validate(ScriptForm, 'POST')
+    def create(self, request):
+        if request.content_type:
+            data = request.data
+
+            replay = self.model()
+            
+            if 'script_id' in data:
+                script = models.Script.objects.get(pk=data['script_id'])
+                replay.script = script
+            else:
+                resp = rc.BAD_REQUEST
+                resp.write('Must include: {"script_id": <script_id>, ...}')
+                return resp
+
+            replay.save()
+            return replay
+        else:
+            super(ReplayHandler, self).create(request)
 
 class EventHandler(BaseHandler):
     allowed_methods = ('GET', 'POST')  # 'PUT')
@@ -148,6 +178,93 @@ class EventHandler(BaseHandler):
                     for param_data in event_data['parameters']:
                         param = models.Parameter()
                         param.event = event
+
+                        if 'name' in param_data:
+                            param.name = param_data['name']
+
+                        if 'value' in param_data:
+                            param.value = param_data['value']
+
+                        if 'data_type' in param_data:
+                            param.data_type = param_data['data_type']
+
+                        param.save()
+            return rc.CREATED
+        else:
+            super(EventHandler, self).create(request)
+
+class ReplayEventHandler(BaseHandler):
+    allowed_methods = ('GET', 'POST')  # 'PUT')
+    fields = ('event',
+               'event_type',
+               'execution_order',
+               'version',
+               'modification_date',
+               'creation_date',
+               'id',
+               'dom_pre_event_state',
+               'dom_post_event_state',
+               ('parameters', ('name',)),
+               )
+    exclude = ('replay',)
+    model = models.ReplayEvent
+
+    def read(self, request, replay_id=None, event_id=None):
+        base = models.Event.objects
+
+        if replay_id:
+            return base.filter(replay=int(replay_id))
+        elif event_id:
+            return base.get(pk=event_id)
+        else:
+            return base.all()
+
+    def create(self, request):
+        print("creation started")
+        if request.content_type:
+            data = request.data
+
+            print data
+            if 'replay_id' not in data:
+                resp = rc.BAD_REQUEST
+                resp.write('Must include script_id: {"replay_id": <id>, "events": [...], }')
+                return resp
+
+            replay = models.Replay.objects.get(pk=data['replay_id'])
+
+            # Bail if there is no events
+            if 'events' not in data:
+                resp = rc.BAD_REQUEST
+                resp.write('Must include list of events: {"replay_id": <id>, "events": [...], }')
+                return resp
+
+            # Handle all of the events
+            for event_data in data['events']:
+                event = self.model()
+                event.replay = replay
+
+                if 'event_type' in event_data:
+                    event.event_type = event_data['event_type']
+
+                if 'dom_pre_event_state' in event_data:
+                    event.dom_pre_event_state = event_data['dom_pre_event_state']
+
+                if 'dom_post_event_state' in event_data:
+                    event.dom_post_event_state = event_data['dom_post_event_state']
+
+                if 'execution_order' in event_data:
+                    event.execution_order = event_data['execution_order']
+
+                if 'version' in event_data:
+                    event.version = event_data['version']
+
+                event.save()
+
+                # Handle all the parameters if there are any
+                if 'parameters' in event_data:
+                    for param_data in event_data['parameters']:
+                        param = models.Parameter()
+                        param.replay_event = event
 
                         if 'name' in param_data:
                             param.name = param_data['name']
