@@ -1,34 +1,69 @@
 from django.contrib import admin
 from webscript_backend import models
 
+class InlineEvent(admin.TabularInline):
+    model = models.Event
+
+    date_hierarchy = 'creation_date'
+    fields = ('event_type', 'execution_order')
+    ordering = ['script', 'execution_order']
+
 class ScriptAdmin(admin.ModelAdmin):
-    pass
+    date_hierarchy = 'creation_date'
+    inlines =  [InlineEvent]
+    list_display = ('name', 'user', 'creation_date', 'description')
+    list_filter = ('user__username',)
+    search_fields = ('^name', 'description', '^user__username')
+    save_as = True
+
+class InlineParameter(admin.TabularInline):
+    model = models.Parameter
+
+    date_hierarchy = 'creation_date'
+    fields = ('name', 'value', 'data_type')
+    ordering = ['name']
 
 class EventAdmin(admin.ModelAdmin):
-    list_display = ('execution_order', 'event_type', 'display_parameters', 'script',)
-    list_filter = ('script__name',
-                   'script__user__username',
+
+    def display_parameters(self, obj):
+        """
+        Summarize parameters for this event.
+        """
+        l = []
+        for param in obj.parameters.all():
+            if len(param.value) > 16:
+                l.append(u"{}={}...".format(param.name, param.value[:16]))
+            else:
+                l.append(u"{}={}".format(param.name, param.value))
+        return "; ".join(l)
+    display_parameters.short_description = "Parameters"
+
+    date_hierarchy = 'creation_date'
+    inlines = [InlineParameter]
+    list_display = ('execution_order', 'event_type', 'display_parameters',
+                    'script',)
+    list_filter = ('script__name', 'script__id', 'script__user__username',
                    'event_type')
-
-    search_fields = ('event_type',
-                     'dom_pre_event_state',
-                     'dom_post_event_state',
-                     'script__name',
-                     'parameter__name',
-                     'parameter__value',
-                     )
-
-
-    ordering = ('script', 'execution_order',)
+    ordering = ['script', 'execution_order']
+    search_fields = ('event_type', 'dom_pre_event_state',
+                     'dom_post_event_state', 'script__name','parameter__name',
+                     'parameter__value',)
+    save_as = True
 
 class ParameterAdmin(admin.ModelAdmin):
-    pass
+    date_hierarchy = 'creation_date'
+    list_display = ('name', 'value', 'data_type', 'event')
+    list_filter = ('event__script__name', 'event__script__id',
+                   'event__script__user__username', 'event__event_type',
+                   'value')
+    ordering = ['id', 'name']
+    search_fields = ('name', 'value')
 
 class ReplayAdmin(admin.ModelAdmin):
-    pass
+    date_hierarchy = 'creation_date'
 
 class ReplayEventAdmin(admin.ModelAdmin):
-    pass
+    date_hierarchy = 'creation_date'
 
 admin.site.register(models.Script, ScriptAdmin)
 admin.site.register(models.Event, EventAdmin)
