@@ -69,7 +69,7 @@ class InlineReplayEvent(admin.TabularInline):
 class ReplayAdmin(admin.ModelAdmin):
     date_hierarchy = 'creation_date'
     inlines =  [InlineReplayEvent]
-    list_display = ('script__name', 'user', 'creation_date', 'description')
+    list_display = ('script', 'user', 'creation_date', 'description')
     list_filter = ('user__username',)
     search_fields = ('^script__name', 'description', '^user__username')
     save_as = True
