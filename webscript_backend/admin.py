@@ -52,7 +52,7 @@ class EventAdmin(admin.ModelAdmin):
 
 class ParameterAdmin(admin.ModelAdmin):
     date_hierarchy = 'creation_date'
-    list_display = ('name', 'value', 'data_type', 'event')
+    list_display = ('name', 'value', 'data_type', 'event', 'replay_event')
     list_filter = ('event__script__name', 'event__script__id',
                    'event__script__user__username', 'event__event_type',
                    'value')

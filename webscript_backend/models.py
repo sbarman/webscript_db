@@ -70,7 +70,8 @@ class Parameter(models.Model):
     event = models.ForeignKey('Event', blank=True, null=True, default=None,
                               related_name="parameters")
     replay_event = models.ForeignKey('ReplayEvent', blank=True, null=True,
-                                     default=None)
+                                     default=None,
+                                     related_name="replayparameters")
 
     creation_date = models.DateTimeField(auto_now_add=True)
     modification_date = models.DateTimeField(auto_now=True, auto_now_add=True)
