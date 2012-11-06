@@ -81,7 +81,7 @@ class ReplayEventAdmin(admin.ModelAdmin):
         Summarize parameters for this event.
         """
         l = []
-        for param in obj.parameters.all():
+        for param in obj.replayparameters.all():
             if len(param.value) > 16:
                 l.append(u"{}={}...".format(param.name, param.value[:16]))
             else:
