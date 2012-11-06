@@ -7,6 +7,7 @@ Quick Setup
 -----------------
 
 Django 1.3.3: pip install django==1.3.3
+South: pip install south
 Tastypie: pip install django-tastypie
 Piston: pip install -e hg+https://bitbucket.org/jespern/django-piston/@7c90898072ce9462a6023bbec5d408ad097a362b#egg=django-piston
 
