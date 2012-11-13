@@ -187,7 +187,7 @@ class EventHandler(BaseHandler):
                             param.data_type = param_data['data_type']
 
                         param.save()
-            return event
+            return True
         else:
             super(EventHandler, self).create(request)
 
@@ -272,7 +272,7 @@ class ReplayEventHandler(BaseHandler):
                             param.data_type = param_data['data_type']
 
                         param.save()
-            return event
+            return True
         else:
             super(EventHandler, self).create(request)
 
