@@ -133,11 +133,9 @@ class EventHandler(BaseHandler):
             return base.all()
 
     def create(self, request):
-        print("creation started")
         if request.content_type:
             data = request.data
 
-            print data
             if 'script_id' not in data:
                 resp = rc.BAD_REQUEST
                 resp.write('Must include script_id: {"script_id": <id>, "events": [...], }')
@@ -220,11 +218,9 @@ class ReplayEventHandler(BaseHandler):
             return base.all()
 
     def create(self, request):
-        print("creation started")
         if request.content_type:
             data = request.data
 
-            print data
             if 'replay_id' not in data:
                 resp = rc.BAD_REQUEST
                 resp.write('Must include script_id: {"replay_id": <id>, "events": [...], }')
@@ -292,3 +288,49 @@ class ParameterHandler(BaseHandler):
             return base.filter(event=int(event_id))
         else:
             return base.all()
+
+class CommentHandler(BaseHandler):
+    allowed_methods = ('POST')  # 'PUT', 'GET')
+    fields = ('name',
+              'value',
+              'execution_order',
+    #          ('script', ('notes',)),
+    #          'replay'
+             )
+    #exclude = ('script',)
+    model = models.Comment
+
+    def read(self, request):
+        base = model.objects
+        return base.all()
+
+    def create(self, request):
+        if request.content_type:
+            data = request.data
+
+            if 'comments' in data:
+                for comment_data in data['comments']:
+                    comment = self.model()
+
+                    if ('name' not in comment_data) or \
+                       ('value' not in comment_data) or \
+                       ('execution_order' not in comment_data):
+                        resp = rc.BAD_REQUEST
+                        resp.write('Must include required fields')
+                        return resp
+
+                    comment.name = comment_data['name']
+                    comment.value = comment_data['value']
+                    comment.execution_order = comment_data['execution_order']
+
+                    if 'script_id' in comment_data:
+                        comment.script = models.Script.objects.get(
+                            pk=comment_data['script_id'])
+                    if 'replay_id' in comment_data:
+                        comment.replay = models.Replay.objects.get(
+                            pk=comment_data['replay_id'])
+
+                    comment.save()
+            return True
+        else:
+            super(EventHandler, self).create(request)

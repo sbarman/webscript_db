@@ -1,9 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
-# from tastypie.models import create_api_key
 
-# See the following before using create_api_key:
-#  http://django-tastypie.readthedocs.org/en/latest/debugging.html#why-is-my-syncdb-with-superuser-failing-with-a-databaseerror
 # models.signals.post_save.connect(create_api_key, sender=User)
 
 
@@ -71,7 +68,7 @@ class Parameter(models.Model):
                               related_name="parameters")
     replay_event = models.ForeignKey('ReplayEvent', blank=True, null=True,
                                      default=None,
-                                     related_name="replayparameters")
+                                     related_name="parameters")
 
     creation_date = models.DateTimeField(auto_now_add=True)
     modification_date = models.DateTimeField(auto_now=True, auto_now_add=True)
@@ -127,3 +124,26 @@ class ReplayEvent(models.Model):
         return u'{}: {} ({})'.format(self.execution_order, self.event_type, self.replay)
 
 
+class Comment(models.Model):
+    name = models.CharField(max_length=32) 
+    value = models.TextField()
+
+    script = models.ForeignKey('Script', blank=True, null=True, default=None,
+                               related_name="comments")
+    replay = models.ForeignKey('Replay', blank=True, null=True,
+                               default=None, related_name="comments")
+    execution_order = models.FloatField(help_text="Floating point number of "\
+                                        "execution. This allows for " \
+                                        "reconstructing the proper order of "\
+                                        "events.")
+
+    creation_date = models.DateTimeField(auto_now_add=True)
+    modification_date = models.DateTimeField(auto_now=True, auto_now_add=True)
+
+    def __unicode__(self):
+        if len(self.value) > 32:
+            return u'Param: {} - {}... --> Event: {}; ReplayEvent: {}'.\
+                   format(self.name, self.value[:32], self.script,
+                          self.replay)
+        return u'Param: {} - {} --> Event: {}; ReplayEvent: {}'.\
+               format(self.name, self.value, self.script, self.replay)

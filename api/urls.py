@@ -8,6 +8,7 @@ event_handler = Resource(handlers.EventHandler)
 replay_event_handler = Resource(handlers.ReplayEventHandler)
 param_handler = Resource(handlers.ParameterHandler)
 user_handler = Resource(handlers.UserHandler)
+comment_handler = Resource(handlers.CommentHandler)
 
 urlpatterns = patterns('',
    url(r'^script/(?P<script_id>\d+)/', script_handler),
@@ -20,6 +21,7 @@ urlpatterns = patterns('',
    url(r'^event_parameters/(?P<event_id>[^/]+)/', param_handler),
    url(r'^replay_event/', replay_event_handler),
    url(r'^parameter/', param_handler),
+   url(r'^comment/', comment_handler),
    url(r'^user/(?P<username>[^/]+)/', user_handler),
    url(r'^user/', user_handler),
 )

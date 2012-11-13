@@ -81,7 +81,7 @@ class ReplayEventAdmin(admin.ModelAdmin):
         Summarize parameters for this event.
         """
         l = []
-        for param in obj.replayparameters.all():
+        for param in obj.parameters.all():
             if len(param.value) > 16:
                 l.append(u"{}={}...".format(param.name, param.value[:16]))
             else:
@@ -101,8 +101,17 @@ class ReplayEventAdmin(admin.ModelAdmin):
                      'parameter__name', 'parameter__value',)
     save_as = True
 
+class CommentAdmin(admin.ModelAdmin):
+    date_hierarchy = 'creation_date'
+    list_display = ('name', 'value', 'execution_order', 'script', 'replay')
+    list_filter = ('script__name', 'script__id',
+                   'script__user__username')
+    ordering = ['id', 'name']
+    search_fields = ('name', 'value')
+
 admin.site.register(models.Script, ScriptAdmin)
 admin.site.register(models.Event, EventAdmin)
 admin.site.register(models.Parameter, ParameterAdmin)
 admin.site.register(models.Replay, ReplayAdmin)
 admin.site.register(models.ReplayEvent, ReplayEventAdmin)
+admin.site.register(models.Comment, CommentAdmin)
