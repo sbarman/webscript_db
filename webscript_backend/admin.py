@@ -9,12 +9,18 @@ class InlineEvent(admin.TabularInline):
     ordering = ['script', 'execution_order']
 
 class ScriptAdmin(admin.ModelAdmin):
+    actions = ['delete_script']
     date_hierarchy = 'creation_date'
     inlines =  [InlineEvent]
     list_display = ('name', 'user', 'creation_date', 'description')
     list_filter = ('user__username',)
     search_fields = ('^name', 'description', '^user__username')
     save_as = True
+
+    def delete_script(self, request, queryset):
+        queryset.delete()
+    delete_script.short_description = "Delete selected scripts (no " + \
+                                      " confirmation)"
 
 class InlineParameter(admin.TabularInline):
     model = models.Parameter
@@ -67,12 +73,18 @@ class InlineReplayEvent(admin.TabularInline):
     ordering = ['replay', 'execution_order']
 
 class ReplayAdmin(admin.ModelAdmin):
+    actions = ['delete_replay']
     date_hierarchy = 'creation_date'
     inlines =  [InlineReplayEvent]
     list_display = ('script', 'creation_date')
     list_filter = ('script__user__username',)
     search_fields = ('^script__name', '^script__user__username')
     save_as = True
+
+    def delete_replay(self, request, queryset):
+        queryset.delete()
+    delete_replay.short_description = "Delete selected replays (no " + \
+                                      " confirmation)"
 
 class ReplayEventAdmin(admin.ModelAdmin):
 
