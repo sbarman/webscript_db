@@ -1,0 +1,18 @@
+{% load static from staticfiles %}
+<link rel="stylesheet" href="{% static 'css/compare.css'%}">
+<div id="top">
+  {% if scripts_list %}
+    <select id="script">
+      <option value=-1 selected=true></option>
+      {% for script in scripts_list %}
+        <option value={{ script.id }}>{{ script.name }} ({{ script.id }})</option>
+      {% endfor %}
+    </select>
+    <div id='replays'>
+  {% else %}
+    <p>No scripts are available.</p>
+  {% endif %}
+</div>
+<div id="diagram"></div>
+<script type="text/javascript" src="{% static 'scripts/jquery-1.7.2.js' %}"></script>
+<script type="text/javascript" src="{% static 'scripts/compare.js' %}"></script>

@@ -28,11 +28,10 @@ class ScriptHandler(BaseHandler):
     fields = ('name',
               'notes',
               'description',
-              'modification_date',
-              'creation_date',
               'id',
-              ('user', ('username', 'firstname', 'lastname', 'id')),
-              ('events', ('event_type', 'modification_date')),
+              ('user', ()),
+              ('events', ()),
+              ('comments', ()),
                )
     model = models.Script
 
@@ -79,13 +78,21 @@ class ScriptHandler(BaseHandler):
 class ReplayHandler(BaseHandler):
     allowed_methods = ('GET', 'POST',)  # 'PUT')
     fields = ('id',
-              ('script', ('id'))
+              ('events', ()),
+              ('comments', ()),
+              #('script', ('id',))
              )
     model = models.Replay
 
     def read(self, request):
-        base = models.Replay.objects
-        return base.all()  # Or base.filter(...)
+        base = self.model.objects
+        params = request.GET;
+
+        if 'script_id' in params:
+            script = params['script_id']
+            return base.filter(script__pk=script)
+        else:
+            return base.all()  # Or base.filter(...)
 
     # @validate(ScriptForm, 'POST')
     def create(self, request):
@@ -110,15 +117,12 @@ class ReplayHandler(BaseHandler):
 class EventHandler(BaseHandler):
     allowed_methods = ('GET', 'POST')  # 'PUT')
     fields = ('event_type',
-               'execution_order',
-               'version',
-               'modification_date',
-               'creation_date',
-               'id',
-               'dom_pre_event_state',
-               'dom_post_event_state',
-               ('parameters', ('name',)),
-               )
+              'execution_order',
+              'id',
+              'dom_pre_event_state',
+              'dom_post_event_state',
+              ('parameters', ()),
+             )
     exclude = ('script',)
     model = models.Event
 
@@ -194,16 +198,13 @@ class EventHandler(BaseHandler):
 class ReplayEventHandler(BaseHandler):
     allowed_methods = ('GET', 'POST')  # 'PUT')
     fields = ('event',
-               'event_type',
-               'execution_order',
-               'version',
-               'modification_date',
-               'creation_date',
-               'id',
-               'dom_pre_event_state',
-               'dom_post_event_state',
-               ('parameters', ('name',)),
-               )
+              'event_type',
+              'execution_order',
+              'id',
+              'dom_pre_event_state',
+              'dom_post_event_state',
+              ('parameters', ()),
+             )
     exclude = ('replay',)
     model = models.ReplayEvent
 
@@ -278,6 +279,10 @@ class ReplayEventHandler(BaseHandler):
 
 class ParameterHandler(BaseHandler):
     allowed_methods = ('GET',)  # 'PUT')
+    fields = ('name',
+              'value',
+              'data_type',
+             )
     exclude = ('event',)
     model = models.Parameter
 
@@ -294,8 +299,6 @@ class CommentHandler(BaseHandler):
     fields = ('name',
               'value',
               'execution_order',
-    #          ('script', ('notes',)),
-    #          'replay'
              )
     #exclude = ('script',)
     model = models.Comment

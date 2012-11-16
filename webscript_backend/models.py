@@ -98,6 +98,7 @@ class Replay(models.Model):
 
 class ReplayEvent(models.Model):
     replay = models.ForeignKey('Replay',
+                               related_name="events",
                                help_text="The replay 'session' that this replay event belongs to.")
     event = models.ForeignKey('Event',
                               blank=True, null=True, default=None,
