@@ -26,7 +26,7 @@ function setScript(id, script) {
     },
     success: function(data, textStatus, jqXHR) {
       console.log(data, textStatus, jqXHR);
-      display(script[0], data);
+      display(script, data);
     },
     contentType: "application/json",
     data: {script_id: id, format: 'json'},
