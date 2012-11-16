@@ -11,9 +11,9 @@ $('#script').change(function(event) {
       setScript(val, data);
     },
     contentType: "application/json",
-    //data: JSON.stringify(postMsg),
+    data: {format: 'json'},
     dataType: "json",
-    processData: false,
+    processData: true,
     type: "GET",
     url: "api/script/" + val,
   });
@@ -29,7 +29,7 @@ function setScript(id, script) {
       display(script[0], data);
     },
     contentType: "application/json",
-    data: {script_id: id},
+    data: {script_id: id, format: 'json'},
     dataType: "json",
     processData: true,
     type: "GET",
