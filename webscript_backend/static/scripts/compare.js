@@ -15,7 +15,7 @@ $('#script').change(function(event) {
     dataType: "json",
     processData: true,
     type: "GET",
-    url: "api/script/" + val,
+    url: "api/script/" + val + "/",
   });
 });
 
