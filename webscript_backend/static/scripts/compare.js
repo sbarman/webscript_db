@@ -91,41 +91,60 @@ function match(script, replay) {
   for (var i = 0, ii = matching.length; i < ii; ++i) {
     var m = matching[i];
     var row = $('<tr></tr>');
+
+    var cell = $('<td></td>');
     if ('seq1' in m) {
-      row.append('<td>' + getNode(m.seq1) + '</td>');
-    } else {
-      row.append('<td></td>');
+      cell.append(getNode(m.seq1, m.seq2));
     }
+    row.append(cell);
+
+    cell = $('<td></td>');
     if ('seq2' in m) {
-      row.append('<td>' + getNode(m.seq2) + '</td>');
-    } else {
-      row.append('<td></td>');
+      cell.append(getNode(m.seq2, m.seq1));
     }
+    row.append(cell);
     table.append(row);
   }
   $('#diagram').append(table);
 }
 
-function getNode(eventOrComment) {
+function getParam(parameters, name) {
+  for (var i = 0, ii = parameters.length; i < ii; ++i) {
+    var param = parameters[i];
+    if (param.name == name)
+      return param.value;
+  }
+  return null;
+}
+
+function getNode(eventOrComment, other) {
   if (eventOrComment == null)
     return "";
 
   if ('event_type' in eventOrComment) {
     var e = eventOrComment
-    var newDiv = "<div class='boxed wordwrap'>";
+    var newDiv = $("<div class='boxed wordwrap'></div>");
 
-    newDiv += "<b>[" + e.id + "]type:" + "</b>" + e.event_type + "<br/>";
-    for (var i = 0, ii = e.parameters.length; i < ii; ++i) {
-      var param = e.parameters[i];
-      newDiv += "<b>" + param.name + ":" + "</b>" + param.value + "<br/>";
+    newDiv.append("<b>[" + e.id + "]type:" + "</b>" + e.event_type + "<br/>");
+    var parameters = e.parameters;
+    for (var i = 0, ii = parameters.length; i < ii; ++i) {
+      var param = parameters[i];
+      var newSpan = $("<span><b>" + param.name + ":" + "</b>" + param.value +                         "<br/></span>");
+      if (other && getParam(other.parameters, param.name) != param.value)
+        newSpan.addClass("diff");
+
+      newDiv.append(newSpan);
     }
-    newDiv += "</div>";
     return newDiv;
   } else {
     var c = eventOrComment
-    var newDiv = "<div class='boxed wordwrap'>";
-    newDiv += "<b>" + c.name + ":" + "</b>" + c.value + "<br/>";
-    newDiv += "</div>";
+    var newDiv = $("<div class='boxed wordwrap'></div>");
+    var newSpan = $("<span><b>" + c.name + ":" + "</b>" + c.value +
+                    "<br/></span>");
+    if (other && c.value != other.value)
+      newSpan.addClass("diff");
+
+    newDiv.append(newSpan);
     return newDiv;
   }
 }
