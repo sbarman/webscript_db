@@ -127,6 +127,16 @@ function getNode(eventOrComment, other) {
 
     newDiv.append("<b>[" + e.id + "]type:" + "</b>" + e.event_type + "<br/>");
     var parameters = e.parameters;
+    parameters = parameters.sort(function(a,b) {
+      a = a.name.toLowerCase();
+      b = b.name.toLowerCase();
+      if (a < b)
+        return -1;
+      else if (a > b)
+        return 1;
+      else
+        return 0;
+    });
     for (var i = 0, ii = parameters.length; i < ii; ++i) {
       var param = parameters[i];
       var newSpan = $("<span><b>" + param.name + ":" + "</b>" + param.value +                         "<br/></span>");
