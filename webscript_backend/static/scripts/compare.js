@@ -1,3 +1,6 @@
+var curScript = null;
+var curReplay = null;
+
 $('#script').change(function(event) {
   var val = event.target.value;
   console.log(event);
@@ -20,57 +23,56 @@ $('#script').change(function(event) {
 });
 
 function setScript(id, script) {
+  curScript = script;
+  createReplayOption(mapping[id]);
+}
+
+function createReplayOption(replays) {
+  $('#replays').empty();
+  if (!replays || replays.length == 0)
+    return;
+
+  var replaySelect = '<select id="replaySelect">';
+  replaySelect += '<option value=null></option>';
+  for (var i = 0, ii = replays.length; i < ii; ++i) {
+    var r = replays[i];
+    replaySelect += '<option value=' + r + '>' + r + '</option>';
+  }  
+  replaySelect += '</select>';
+
+  $('#replays').append(replaySelect);
+  $('#replaySelect').change(getReplay);
+}
+
+function getReplay() {
+  var val = $('#replaySelect').prop('value');
+  if (val == null)
+    return;
+
   $.ajax({
     error: function(jqXHR, textStatus, errorThrown) {
       console.log("error getting script", jqXHR, textStatus, errorThrown);
     },
     success: function(data, textStatus, jqXHR) {
       console.log(data, textStatus, jqXHR);
-      display(script, data);
+      setReplay(val, data);
     },
     contentType: "application/json",
-    data: {script_id: id, format: 'json'},
+    data: {format: 'json'},
     dataType: "json",
     processData: true,
     type: "GET",
-    url: "api/replay/",
+    url: "api/replay/" + val + "/",
   });
 }
 
-var curScript = null;
-var curReplays = null;
-
-function display(script, replays) {
-  curScript = script;
-  curReplays = replays;
-  createReplayOption(replays);
-  createDiffs();
+function setReplay(id, replay) {
+  curReplay = replay;
+  display();
 }
 
-function createReplayOption(replays) {
-  $('#replays').empty();
-  if (replays.length == 0)
-    return;
-
-  var replaySelect = '<select id="replaySelect">';
-  for (var i = 0, ii = replays.length; i < ii; ++i) {
-    var r = replays[i];
-    replaySelect += '<option value=' + i + '>' + r.id + '</option>';
-  }  
-  replaySelect += '</select>';
-
-  $('#replays').append(replaySelect);
-  $('#replaySelect').change(createDiffs);
-}
-
-function createDiffs() {
-  var script = curScript;
-  var replayIndex = $('#replaySelect').prop('value');
-  if (replayIndex != null) {
-    var replay = curReplays[replayIndex];
-    match(script, replay);
-  } else {
-  }
+function display() {
+  match(curScript, curReplay);
 }
 
 function match(script, replay) {

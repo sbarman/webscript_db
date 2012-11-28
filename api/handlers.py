@@ -84,11 +84,13 @@ class ReplayHandler(BaseHandler):
              )
     model = models.Replay
 
-    def read(self, request):
+    def read(self, request, replay_id=None):
         base = self.model.objects
         params = request.GET;
 
-        if 'script_id' in params:
+        if replay_id:
+            return base.get(pk=replay_id)
+        elif 'script_id' in params:
             script = params['script_id']
             return base.filter(script__pk=script)
         else:

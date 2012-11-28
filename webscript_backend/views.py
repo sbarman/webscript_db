@@ -1,12 +1,22 @@
 from django.http import HttpResponse
 from django.shortcuts import render
 
-from webscript_backend.models import Script, Replay
+from webscript_backend.models import Script
+import json
 
 def index(request):
     return HttpResponse("Hello, world. You're at the index.")
 
 def compare(request):
     scripts_list = Script.objects.order_by('id')
-    context = {'scripts_list': scripts_list}
+    script_to_replays = {};
+    for script in scripts_list:
+        replays = script.replays.all();
+        replay_id_list = []
+        for replay in replays:
+            replay_id_list.append(replay.id)
+        script_to_replays[script.id] = replay_id_list
+
+    context = {'scripts_list': scripts_list,
+               'mapping': json.dumps(script_to_replays)}
     return render(request, 'compare.html', context)

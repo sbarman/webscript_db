@@ -87,7 +87,8 @@ class Parameter(models.Model):
 #  it? In duplicated Events/Parameters, or similar objects with more details?
 class Replay(models.Model):
     script = models.ForeignKey('Script',
-                               help_text="The script that was replayed")
+                               help_text="The script that was replayed",
+                               related_name="replays")
 
     creation_date = models.DateTimeField(auto_now_add=True)
     modification_date = models.DateTimeField(auto_now=True, auto_now_add=True)
