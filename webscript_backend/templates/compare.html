@@ -8,7 +8,13 @@
         <option value={{ script.id }}>{{ script.name }} ({{ script.id }})</option>
       {% endfor %}
     </select>
-    <div id='replays'>
+    <select id="script2">
+      <option value=-1 selected=true></option>
+      {% for script in scripts_list %}
+        <option value={{ script.id }}>{{ script.name }} ({{ script.id }})</option>
+      {% endfor %}
+    </select>
+    <div id='replays'></div>
   {% else %}
     <p>No scripts are available.</p>
   {% endif %}

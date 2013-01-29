@@ -22,9 +22,34 @@ $('#script').change(function(event) {
   });
 });
 
+$('#script2').change(function(event) {
+  var val = event.target.value;
+  console.log(event);
+
+  $.ajax({
+    error: function(jqXHR, textStatus, errorThrown) {
+      console.log("error getting script", jqXHR, textStatus, errorThrown);
+    },
+    success: function(data, textStatus, jqXHR) {
+      console.log(data, textStatus, jqXHR);
+      setScript2(val, data);
+    },
+    contentType: "application/json",
+    data: {format: 'json'},
+    dataType: "json",
+    processData: true,
+    type: "GET",
+    url: "api/script/" + val + "/",
+  });
+});
+
 function setScript(id, script) {
   curScript = script;
   createReplayOption(mapping[id]);
+}
+
+function setScript2(id, script) {
+  display(script);
 }
 
 function createReplayOption(replays) {
@@ -67,12 +92,11 @@ function getReplay() {
 }
 
 function setReplay(id, replay) {
-  curReplay = replay;
-  display();
+  display(replay);
 }
 
-function display() {
-  match(curScript, curReplay);
+function display(otherScript) {
+  match(curScript, otherScript);
 }
 
 function match(script, replay) {
