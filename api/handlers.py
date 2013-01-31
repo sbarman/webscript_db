@@ -29,10 +29,10 @@ class ScriptHandler(BaseHandler):
               'notes',
               'description',
               'id',
-              ('user', ()),
-              ('events', ()),
-              ('comments', ()),
-               )
+              ('user', (),),
+              ('events', ('id',)),
+              ('comments', (),),
+             )
     model = models.Script
 
     def read(self, request, script_id=None, script_name=None):
@@ -63,7 +63,8 @@ class ScriptHandler(BaseHandler):
                 script.user = user
             else:
                 resp = rc.BAD_REQUEST
-                resp.write('Must include: {"user": {"username": <username>}, ...}')
+                resp.write('Must include: {"user": {"username": <username>}, '
+                           '...}')
                 return resp
 
             script.save()
@@ -144,7 +145,8 @@ class EventHandler(BaseHandler):
 
             if 'script_id' not in data:
                 resp = rc.BAD_REQUEST
-                resp.write('Must include script_id: {"script_id": <id>, "events": [...], }')
+                resp.write('Must include script_id: {"script_id": <id>, '
+                           '"events": [...], }')
                 return resp
 
             script = models.Script.objects.get(pk=data['script_id'])
@@ -152,7 +154,8 @@ class EventHandler(BaseHandler):
             # Bail if there is no events
             if 'events' not in data:
                 resp = rc.BAD_REQUEST
-                resp.write('Must include list of events: {"script_id": <id>, "events": [...], }')
+                resp.write('Must include list of events: {"script_id": <id>,'
+                           ' "events": [...], }')
                 return resp
 
             # Handle all of the events
@@ -164,10 +167,12 @@ class EventHandler(BaseHandler):
                     event.event_type = event_data['event_type']
 
                 if 'dom_pre_event_state' in event_data:
-                    event.dom_pre_event_state = event_data['dom_pre_event_state']
+                    event.dom_pre_event_state = \
+                            event_data['dom_pre_event_state']
 
                 if 'dom_post_event_state' in event_data:
-                    event.dom_post_event_state = event_data['dom_post_event_state']
+                    event.dom_post_event_state = \
+                            event_data['dom_post_event_state']
 
                 if 'execution_order' in event_data:
                     event.execution_order = event_data['execution_order']
@@ -226,7 +231,8 @@ class ReplayEventHandler(BaseHandler):
 
             if 'replay_id' not in data:
                 resp = rc.BAD_REQUEST
-                resp.write('Must include script_id: {"replay_id": <id>, "events": [...], }')
+                resp.write('Must include script_id: {"replay_id": <id>, '
+                           '"events": [...], }')
                 return resp
 
             replay = models.Replay.objects.get(pk=data['replay_id'])
@@ -234,7 +240,8 @@ class ReplayEventHandler(BaseHandler):
             # Bail if there is no events
             if 'events' not in data:
                 resp = rc.BAD_REQUEST
-                resp.write('Must include list of events: {"replay_id": <id>, "events": [...], }')
+                resp.write('Must include list of events: {"replay_id": <id>,'
+                           ' "events": [...], }')
                 return resp
 
             # Handle all of the events
@@ -246,10 +253,12 @@ class ReplayEventHandler(BaseHandler):
                     event.event_type = event_data['event_type']
 
                 if 'dom_pre_event_state' in event_data:
-                    event.dom_pre_event_state = event_data['dom_pre_event_state']
+                    event.dom_pre_event_state = \
+                            event_data['dom_pre_event_state']
 
                 if 'dom_post_event_state' in event_data:
-                    event.dom_post_event_state = event_data['dom_post_event_state']
+                    event.dom_post_event_state = \
+                            event_data['dom_post_event_state']
 
                 if 'execution_order' in event_data:
                     event.execution_order = event_data['execution_order']
