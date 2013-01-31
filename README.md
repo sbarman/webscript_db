@@ -8,7 +8,7 @@ Quick Setup
 
 Django 1.4.3: pip install django==1.4.3
 South: pip install south
-Piston: pip install -e hg+https://bitbucket.org/jespern/django-piston/@7c90898072ce9462a6023bbec5d408ad097a362b#egg=django-piston
+// note that piston 0.2.3 has a bug that prevents the custom fields of a many-2-many filed from being used
 Piston: pip install django-piston==0.2.2
 
 Add this directory to the PYTHONPATH so django can find the
