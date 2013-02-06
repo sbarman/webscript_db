@@ -1,14 +1,9 @@
 from piston.handler import BaseHandler
 from piston.utils import rc, throttle
 from piston.utils import validate
-from django import forms
 from django.contrib.auth.models import User
 
 from webscript_backend import models
-
-class ScriptForm(forms.ModelForm):
-    class Meta:
-        model = models.Script
 
 class UserHandler(BaseHandler):
     allowed_methods = ('GET',)
@@ -75,47 +70,6 @@ class ScriptHandler(BaseHandler):
             return script
         else:
             super(ScriptHandler, self).create(request)
-
-class ReplayHandler(BaseHandler):
-    allowed_methods = ('GET', 'POST',)  # 'PUT')
-    fields = ('id',
-              ('events', ()),
-              ('comments', ()),
-              #('script', ('id',))
-             )
-    model = models.Replay
-
-    def read(self, request, replay_id=None):
-        base = self.model.objects
-        params = request.GET;
-
-        if replay_id:
-            return base.get(pk=replay_id)
-        elif 'script_id' in params:
-            script = params['script_id']
-            return base.filter(script__pk=script)
-        else:
-            return base.all()  # Or base.filter(...)
-
-    # @validate(ScriptForm, 'POST')
-    def create(self, request):
-        if request.content_type:
-            data = request.data
-
-            replay = self.model()
-            
-            if 'script_id' in data:
-                script = models.Script.objects.get(pk=data['script_id'])
-                replay.script = script
-            else:
-                resp = rc.BAD_REQUEST
-                resp.write('Must include: {"script_id": <script_id>, ...}')
-                return resp
-
-            replay.save()
-            return replay
-        else:
-            super(ReplayHandler, self).create(request)
 
 class EventHandler(BaseHandler):
     allowed_methods = ('GET', 'POST')  # 'PUT')
@@ -202,92 +156,6 @@ class EventHandler(BaseHandler):
         else:
             super(EventHandler, self).create(request)
 
-class ReplayEventHandler(BaseHandler):
-    allowed_methods = ('GET', 'POST')  # 'PUT')
-    fields = ('event',
-              'event_type',
-              'execution_order',
-              'id',
-              'dom_pre_event_state',
-              'dom_post_event_state',
-              ('parameters', ()),
-             )
-    exclude = ('replay',)
-    model = models.ReplayEvent
-
-    def read(self, request, replay_id=None, event_id=None):
-        base = models.Event.objects
-
-        if replay_id:
-            return base.filter(replay=int(replay_id))
-        elif event_id:
-            return base.get(pk=event_id)
-        else:
-            return base.all()
-
-    def create(self, request):
-        if request.content_type:
-            data = request.data
-
-            if 'replay_id' not in data:
-                resp = rc.BAD_REQUEST
-                resp.write('Must include script_id: {"replay_id": <id>, '
-                           '"events": [...], }')
-                return resp
-
-            replay = models.Replay.objects.get(pk=data['replay_id'])
-
-            # Bail if there is no events
-            if 'events' not in data:
-                resp = rc.BAD_REQUEST
-                resp.write('Must include list of events: {"replay_id": <id>,'
-                           ' "events": [...], }')
-                return resp
-
-            # Handle all of the events
-            for event_data in data['events']:
-                event = self.model()
-                event.replay = replay
-
-                if 'event_type' in event_data:
-                    event.event_type = event_data['event_type']
-
-                if 'dom_pre_event_state' in event_data:
-                    event.dom_pre_event_state = \
-                            event_data['dom_pre_event_state']
-
-                if 'dom_post_event_state' in event_data:
-                    event.dom_post_event_state = \
-                            event_data['dom_post_event_state']
-
-                if 'execution_order' in event_data:
-                    event.execution_order = event_data['execution_order']
-
-                if 'version' in event_data:
-                    event.version = event_data['version']
-
-                event.save()
-
-                # Handle all the parameters if there are any
-                if 'parameters' in event_data:
-                    for param_data in event_data['parameters']:
-                        param = models.Parameter()
-                        param.replay_event = event
-
-                        if 'name' in param_data:
-                            param.name = param_data['name']
-
-                        if 'value' in param_data:
-                            param.value = param_data['value']
-
-                        if 'data_type' in param_data:
-                            param.data_type = param_data['data_type']
-
-                        param.save()
-            return True
-        else:
-            super(EventHandler, self).create(request)
-
 class ParameterHandler(BaseHandler):
     allowed_methods = ('GET',)  # 'PUT')
     fields = ('name',
@@ -340,9 +208,6 @@ class CommentHandler(BaseHandler):
                     if 'script_id' in comment_data:
                         comment.script = models.Script.objects.get(
                             pk=comment_data['script_id'])
-                    if 'replay_id' in comment_data:
-                        comment.replay = models.Replay.objects.get(
-                            pk=comment_data['replay_id'])
 
                     comment.save()
             return True

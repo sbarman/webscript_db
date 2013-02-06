@@ -15,6 +15,10 @@ class Script(models.Model):
     creation_date = models.DateTimeField(auto_now_add=True)
     modification_date = models.DateTimeField(auto_now=True, auto_now_add=True)
 
+    parent = models.ForeignKey('Script',
+                               help_text="The script that was replayed",
+                               related_name="replays", blank=True, null=True)
+
     def __unicode__(self):
         return u'{} - {}'.format(self.name, self.creation_date)
    
@@ -66,65 +70,17 @@ class Parameter(models.Model):
 
     event = models.ForeignKey('Event', blank=True, null=True, default=None,
                               related_name="parameters")
-    replay_event = models.ForeignKey('ReplayEvent', blank=True, null=True,
-                                     default=None,
-                                     related_name="parameters")
 
     creation_date = models.DateTimeField(auto_now_add=True)
     modification_date = models.DateTimeField(auto_now=True, auto_now_add=True)
 
     def __unicode__(self):
         if len(self.value) > 32:
-            return u'Param: {} - {}... ({}) --> Event: {}; ReplayEvent: {}'.\
+            return u'Param: {} - {}... ({}) --> Event: {}'.\
                    format(self.name, self.value[:32], self.data_type, 
-                          self.event, self.replay_event)
-        return u'Param: {} - {} ({}) --> Event: {}; ReplayEvent: {}'.\
-               format(self.name, self.value, self.data_type, self.event,
-                      self.replay_event)
-
-
-# FIXME: Need to define what the replay will store and where it should store 
-#  it? In duplicated Events/Parameters, or similar objects with more details?
-class Replay(models.Model):
-    script = models.ForeignKey('Script',
-                               help_text="The script that was replayed",
-                               related_name="replays")
-
-    creation_date = models.DateTimeField(auto_now_add=True)
-    modification_date = models.DateTimeField(auto_now=True, auto_now_add=True)
-
-    def __unicode__(self):
-        return u'{} - {}'.format(self.script.name, self.creation_date)
-
-
-class ReplayEvent(models.Model):
-    replay = models.ForeignKey('Replay',
-                               related_name="events",
-                               help_text="The replay 'session' that this replay event belongs to.")
-    event = models.ForeignKey('Event',
-                              blank=True, null=True, default=None,
-                              help_text="The event this replay was based on.")
-
-    event_type = models.CharField(max_length=128,
-                                  help_text="The type of event to be replayed.")
-    dom_pre_event_state = models.TextField(help_text="State of DOM prior to Event firing",
-                                     blank=True, null=True)
-    dom_post_event_state = models.TextField(help_text="State of DOM after Event finished",
-                                     blank=True, null=True)
-    version = models.CharField(max_length=32,
-                               help_text="Event Format version for Event. " \
-                                     "Intended to allow backwards incompatible changes.",
-                               default="1.0")
-
-    execution_order = models.FloatField(help_text="Floating point number of execution." \
-                                "This allows for reconstructing the proper order of events.")
-
-    creation_date = models.DateTimeField(auto_now_add=True)
-    modification_date = models.DateTimeField(auto_now=True, auto_now_add=True)
-
-    def __unicode__(self):
-        return u'{}: {} ({})'.format(self.execution_order, self.event_type, self.replay)
-
+                          self.event)
+        return u'Param: {} - {} ({}) --> Event: {}'.\
+               format(self.name, self.value, self.data_type, self.event)
 
 class Comment(models.Model):
     name = models.CharField(max_length=32) 
@@ -132,8 +88,6 @@ class Comment(models.Model):
 
     script = models.ForeignKey('Script', blank=True, null=True, default=None,
                                related_name="comments")
-    replay = models.ForeignKey('Replay', blank=True, null=True,
-                               default=None, related_name="comments")
     execution_order = models.FloatField(help_text="Floating point number of "\
                                         "execution. This allows for " \
                                         "reconstructing the proper order of "\
@@ -144,8 +98,7 @@ class Comment(models.Model):
 
     def __unicode__(self):
         if len(self.value) > 32:
-            return u'Param: {} - {}... --> Event: {}; ReplayEvent: {}'.\
-                   format(self.name, self.value[:32], self.script,
-                          self.replay)
-        return u'Param: {} - {} --> Event: {}; ReplayEvent: {}'.\
-               format(self.name, self.value, self.script, self.replay)
+            return u'Param: {} - {}... --> Event: {}'.\
+                   format(self.name, self.value[:32], self.script)
+        return u'Param: {} - {} --> Event: {}'.\
+               format(self.name, self.value, self.script)
