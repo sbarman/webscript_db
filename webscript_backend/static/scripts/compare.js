@@ -1,24 +1,15 @@
 var curScript = null;
 var curReplay = null;
 
+var server = new ScriptServer("api/")
+
 $('#script').change(function(event) {
   var val = event.target.value;
   console.log(event);
 
-  $.ajax({
-    error: function(jqXHR, textStatus, errorThrown) {
-      console.log("error getting script", jqXHR, textStatus, errorThrown);
-    },
-    success: function(data, textStatus, jqXHR) {
-      console.log(data, textStatus, jqXHR);
-      setScript(val, data);
-    },
-    contentType: "application/json",
-    data: {format: 'json'},
-    dataType: "json",
-    processData: true,
-    type: "GET",
-    url: "api/script/" + val + "/",
+  server.getScript(val, function(data) {
+    console.log(data);
+    setScript(val, data);
   });
 });
 
@@ -26,20 +17,9 @@ $('#script2').change(function(event) {
   var val = event.target.value;
   console.log(event);
 
-  $.ajax({
-    error: function(jqXHR, textStatus, errorThrown) {
-      console.log("error getting script", jqXHR, textStatus, errorThrown);
-    },
-    success: function(data, textStatus, jqXHR) {
-      console.log(data, textStatus, jqXHR);
-      setScript2(val, data);
-    },
-    contentType: "application/json",
-    data: {format: 'json'},
-    dataType: "json",
-    processData: true,
-    type: "GET",
-    url: "api/script/" + val + "/",
+  server.getScript(val, function(data) {
+    console.log(data, textStatus, jqXHR);
+    setScript2(val, data);
   });
 });
 
