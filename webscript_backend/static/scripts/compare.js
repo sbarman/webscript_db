@@ -128,7 +128,8 @@ function getNode(eventOrComment, other) {
     });
     for (var i = 0, ii = parameters.length; i < ii; ++i) {
       var param = parameters[i];
-      var newSpan = $("<span><b>" + param.name + ":" + "</b>" + param.value +                         "<br/></span>");
+      var cleansedValue = $('<div/>').text(param.value).html();
+      var newSpan = $("<span><b>" + param.name + ":" + "</b>" + cleansedValue +                         "<br/></span>");
       if (other && getParam(other.parameters, param.name) != param.value)
         newSpan.addClass("diff");
 
