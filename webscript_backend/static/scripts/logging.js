@@ -14,7 +14,7 @@ var LogLevel = {
 };
 
 (function() {
-  var level = params.logging.level;
+  var level = 1;
 
   var Logger = (function LoggerClosure() {
     function Logger(tags) {
@@ -71,16 +71,8 @@ var LogLevel = {
   getLog = function() {
     var names = arguments;
     if (names.length == 0)
-      return logger;
-
-    var enabledLogs = true;
-
-    for (var i = 0, ii = names.length; i < ii; ++i) {
-      var name = names[i];
-      if (enabledLogs.indexOf(name) != -1)
-        return new Logger(names);
-    }
-
-    return new NoopLogger();
+      names = [""];
+    
+    return new Logger(names);
   };
 })();

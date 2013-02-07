@@ -1,13 +1,13 @@
 var curScript = null;
-var curReplay = null;
+var curScript2 = null;
 
 var server = new ScriptServer("api/")
 
 $('#script').change(function(event) {
   var val = event.target.value;
-  console.log(event);
+  console.log("getting script:", val);
 
-  server.getScript(val, function(data) {
+  server.getScript(val, false, function(id, data) {
     console.log(data);
     setScript(val, data);
   });
@@ -15,10 +15,10 @@ $('#script').change(function(event) {
 
 $('#script2').change(function(event) {
   var val = event.target.value;
-  console.log(event);
+  console.log("getting script:", val);
 
-  server.getScript(val, function(data) {
-    console.log(data, textStatus, jqXHR);
+  server.getScript(val, false, function(id, data) {
+    console.log(data);
     setScript2(val, data);
   });
 });
@@ -26,10 +26,12 @@ $('#script2').change(function(event) {
 function setScript(id, script) {
   curScript = script;
   createReplayOption(mapping[id]);
+  display();
 }
 
 function setScript2(id, script) {
-  display(script);
+  curScript2 = script;
+  display();
 }
 
 function createReplayOption(replays) {
@@ -46,37 +48,18 @@ function createReplayOption(replays) {
   replaySelect += '</select>';
 
   $('#replays').append(replaySelect);
-  $('#replaySelect').change(getReplay);
-}
-
-function getReplay() {
-  var val = $('#replaySelect').prop('value');
-  if (val == null)
-    return;
-
-  $.ajax({
-    error: function(jqXHR, textStatus, errorThrown) {
-      console.log("error getting script", jqXHR, textStatus, errorThrown);
-    },
-    success: function(data, textStatus, jqXHR) {
-      console.log(data, textStatus, jqXHR);
-      setReplay(val, data);
-    },
-    contentType: "application/json",
-    data: {format: 'json'},
-    dataType: "json",
-    processData: true,
-    type: "GET",
-    url: "api/replay/" + val + "/",
+  $('#replaySelect').change(function(event) {
+    var val = event.target.value;
+    server.getScript(val, false, function(id, data) {
+      console.log(data);
+      setScript2(data);
+    });
   });
 }
 
-function setReplay(id, replay) {
-  display(replay);
-}
-
-function display(otherScript) {
-  match(curScript, otherScript);
+function display() {
+  if (curScript && curScript2)
+    match(curScript, curScript2);
 }
 
 function match(script, replay) {

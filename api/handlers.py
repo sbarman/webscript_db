@@ -38,7 +38,7 @@ class ScriptHandler(BaseHandler):
         if script_name:
             return base.filter(name=script_name)
         elif script_id:
-            return base.get(pk=script_id)
+            return base.filter(pk=script_id)
         else:
             return base.all()  # Or base.filter(...)
 
