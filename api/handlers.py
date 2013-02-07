@@ -24,9 +24,11 @@ class ScriptHandler(BaseHandler):
               'notes',
               'description',
               'id',
+              ('parent', ('id',)),
               ('user', (),),
               ('events', ('id',)),
               ('comments', (),),
+              ('replays', ('id',)),
              )
     model = models.Script
 
@@ -52,6 +54,10 @@ class ScriptHandler(BaseHandler):
 
             if 'description' in data:
                 script.description = data['description']
+
+            if 'parent_id' in data:
+                parent = models.Script.objects.get(pk=data['parent_id'])
+                script.parent = parent
 
             if 'user' in data:
                 user = User.objects.get(username=data['user']['username'])
@@ -79,8 +85,8 @@ class EventHandler(BaseHandler):
               'dom_pre_event_state',
               'dom_post_event_state',
               ('parameters', ()),
+              ('script', ('id')),
              )
-    exclude = ('script',)
     model = models.Event
 
     def read(self, request, script_id=None, event_id=None):
@@ -161,8 +167,8 @@ class ParameterHandler(BaseHandler):
     fields = ('name',
               'value',
               'data_type',
+              ('event', ('id',)),
              )
-    exclude = ('event',)
     model = models.Parameter
 
     def read(self, request, event_id=None):
@@ -174,17 +180,21 @@ class ParameterHandler(BaseHandler):
             return base.all()
 
 class CommentHandler(BaseHandler):
-    allowed_methods = ('POST')  # 'PUT', 'GET')
+    allowed_methods = ('GET', 'POST')  # 'PUT')
     fields = ('name',
               'value',
               'execution_order',
+              ('script', ('id',)),
              )
-    #exclude = ('script',)
     model = models.Comment
 
-    def read(self, request):
+    def read(self, request, script_id=None):
         base = model.objects
-        return base.all()
+
+        if event_id:
+            return base.filter(event=int(script_id))
+        else:
+            return base.all()
 
     def create(self, request):
         if request.content_type:
