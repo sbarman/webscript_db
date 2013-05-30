@@ -128,10 +128,46 @@ function getNode(eventOrComment, other) {
     });
     for (var i = 0, ii = parameters.length; i < ii; ++i) {
       var param = parameters[i];
-      var cleansedValue = $('<div/>').text(param.value).html();
-      var newSpan = $("<span><b>" + param.name + ":" + "</b>" + cleansedValue +                         "<br/></span>");
+
+      var newSpan = $("<span><b>" + param.name + ":" + "</b></span>");
       if (other && getParam(other.parameters, param.name) != param.value)
         newSpan.addClass("diff");
+
+      var value;
+      if (param.name == "deltas") {
+        var valueObj = eval(param.value);
+        value = '';
+        for (var j = 0, jj = valueObj.length; j < jj; ++j) {
+          var delta = valueObj[j];
+          value += delta.type + '\n';
+          if (delta.divergingProp) {
+            var prop = delta.divergingProp;
+            value += prop + ":" +  delta.orig.prop[prop] + " -> " + 
+                     delta.changed.prop[prop] + '\n';
+          }
+        }
+        if (value == '')
+          value = '-';
+
+      } else {
+        value = param.value;
+      }
+
+      var cleansedValue = $('<span/>').text(value);
+      if (cleansedValue.html().length > 500) {
+        var id = uid();
+        cleansedValue.attr('id', id);
+        cleansedValue.css('display', 'none');
+
+        (function() {
+          var captureId = id;
+          newSpan.click(function(eventObject) {
+            $('#' + captureId).toggle();
+          });
+        })();
+      }
+      newSpan.append(cleansedValue);
+      newSpan.append('<br/>');
 
       newDiv.append(newSpan);
     }
@@ -187,4 +223,10 @@ function lcs(seq1, idx1, seq2, idx2, hash) {
       return {length: t2.length, matches: [mismatch].concat(t2.matches)}
     }
   }
+}
+
+var id = 0;
+function uid() {
+  id += 1;
+  return "id" + id;
 }

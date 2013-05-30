@@ -7,6 +7,9 @@ event_handler = Resource(handlers.EventHandler)
 param_handler = Resource(handlers.ParameterHandler)
 user_handler = Resource(handlers.UserHandler)
 comment_handler = Resource(handlers.CommentHandler)
+benchmark_handler = Resource(handlers.BenchmarkHandler)
+benchmark_run_handler = Resource(handlers.BenchmarkRunHandler)
+capture_handler = Resource(handlers.CaptureHandler)
 
 urlpatterns = patterns('',
    url(r'^script/(?P<script_id>\d+)/', script_handler),
@@ -21,4 +24,8 @@ urlpatterns = patterns('',
    url(r'^script_comments/(?P<script_id>[^/]+)/', comment_handler),
    url(r'^user/(?P<username>[^/]+)/', user_handler),
    url(r'^user/', user_handler),
+   url(r'^benchmark/', benchmark_handler),
+   url(r'^benchmark_run/', benchmark_run_handler),
+   url(r'^capture/(?P<script_id>\d+)/', capture_handler),
+   url(r'^capture/', capture_handler),
 )

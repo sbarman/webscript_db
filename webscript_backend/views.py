@@ -20,3 +20,6 @@ def compare(request):
     context = {'scripts_list': scripts_list,
                'mapping': json.dumps(script_to_replays)}
     return render(request, 'compare.html', context)
+
+def demo(request):
+    return render(request, 'demo.html', {})

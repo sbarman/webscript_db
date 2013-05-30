@@ -102,3 +102,37 @@ class Comment(models.Model):
                    format(self.name, self.value[:32], self.script)
         return u'Param: {} - {} --> Event: {}'.\
                format(self.name, self.value, self.script)
+
+class Benchmark(models.Model):
+    script = models.ForeignKey('Script', blank=False, null=False)
+    success_condition = models.TextField(help_text="Function to evaluate to " +
+                                         "check if benchmark was successful",
+                                         blank=False, null=False)
+    def __unicode__(self):
+        return unicode(self.script)
+        
+    
+class BenchmarkRun(models.Model):
+    benchmark = models.ForeignKey('Benchmark', blank=False, null=False)
+    creation_date = models.DateTimeField(auto_now_add=True)
+    modification_date = models.DateTimeField(auto_now=True, auto_now_add=True)
+    errors = models.TextField(help_text="Errors raised during execution",
+                              blank=True, null=True)
+    events_executed = models.FloatField(help_text="Execution order of last " +
+                                        "event executed in replay")
+    successful = models.BooleanField()
+
+    def __unicode__(self):
+        return unicode(self.benchmark) + " " + unicode(self.successful)
+   
+class Capture(models.Model):
+    script = models.ForeignKey('Script', blank=False, null=False)
+    innerHtml = models.TextField()
+    nodeName = models.TextField()
+    
+    creation_date = models.DateTimeField(auto_now_add=True)
+    modification_date = models.DateTimeField(auto_now=True, auto_now_add=True)
+     
+    def __unicode__(self):
+        return unicode(self.script) + " " + self.nodeName + " " + \
+               self.innerHtml[:32]

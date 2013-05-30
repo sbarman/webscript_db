@@ -116,6 +116,10 @@ var ScriptServer = (function ScriptServerClosure() {
       if (events.length == 0)
         return;
 
+      // make a copy of the array
+      events = events.slice(0);
+      comments = comments.slice(0);
+
       var scriptServer = this;
       var server = this.server;
       var postMsg = {};
@@ -206,7 +210,7 @@ var ScriptServer = (function ScriptServerClosure() {
       getComments();
       return null;
     },
-    getScript: function _getScript(name, convert, cont) {
+    getScript: function _getScript(name, cont) {
       var scriptServer = this;
       var server = this.server;
 
@@ -231,32 +235,27 @@ var ScriptServer = (function ScriptServerClosure() {
                 return a.execution_order - b.execution_order;
               });
 
-              if (convert) {
-                for (var i = 0, ii = serverEvents.length; i < ii; ++i) {
-                  var e = serverEvents[i];
-                  var serverParams = e.parameters;
-                  var event = {};
-                  event.msg = {type: 'event', value: {}};
+              for (var i = 0, ii = serverEvents.length; i < ii; ++i) {
+                var e = serverEvents[i];
+                var serverParams = e.parameters;
+                var event = {};
+                event.msg = {type: 'event', value: {}};
 
-                  var msgValue = event.msg.value;
-                  msgValue.snapshotBefore = JSON.parse(e.dom_pre_event_state);
-                  msgValue.snapshotAfter = JSON.parse(e.dom_post_event_state);
+                var msgValue = event.msg.value;
+                msgValue.snapshotBefore = JSON.parse(e.dom_pre_event_state);
+                msgValue.snapshotAfter = JSON.parse(e.dom_post_event_state);
 
-                  for (var j = 0, jj = serverParams.length; j < jj; ++j) {
-                    var p = serverParams[j];
-                    if (p.name.charAt(0) == '_') {
-                      event[p.name.slice(1)] = JSON.parse(p.value);
-                    } else {
-                      msgValue[p.name] = JSON.parse(p.value);
-                    }
+                for (var j = 0, jj = serverParams.length; j < jj; ++j) {
+                  var p = serverParams[j];
+                  if (p.name.charAt(0) == '_') {
+                    event[p.name.slice(1)] = JSON.parse(p.value);
+                  } else {
+                    msgValue[p.name] = JSON.parse(p.value);
                   }
-                  events.push(event);
                 }
-                script.events = events;
-              } else {
-                script.events = serverEvents;
+                events.push(event);
               }
-              cont(script.id, script);
+              cont(script.id, events);
             });
           }
         },
@@ -267,7 +266,102 @@ var ScriptServer = (function ScriptServerClosure() {
         dataType: 'json'
       });
       return null;
-    }
+    },
+    getBenchmarks: function _getBenchmarks(cont) {
+      var scriptServer = this;
+      var server = this.server;
+
+      $.ajax({
+        error: function(jqXHR, textStatus, errorThrown) {
+          scriptLog.log(jqXHR, textStatus, errorThrown);
+        },
+        success: function(data, textStatus, jqXHR) {
+          scriptLog.log(data, textStatus, jqXHR);
+          var benchmarks = data;
+          cont(benchmarks);
+        },
+        url: server + 'benchmark/?format=json',
+        type: 'GET',
+        processData: false,
+        accepts: 'application/json',
+        dataType: 'json'
+      });
+      return null;
+    },
+    saveBenchmarkRun: function _saveBenchmarkRun(benchmarkRun) {
+      var scriptServer = this;
+      var server = this.server;
+
+      var postMsg = {};
+      postMsg['benchmark'] = benchmarkRun.benchmark.id;
+      postMsg['successful'] = benchmarkRun.successful;
+      postMsg['events_executed'] = benchmarkRun.events_executed;
+      
+      if (benchmarkRun.errors)
+        postMsg['errror'] = benchmarkRun.errors;
+
+      $.ajax({
+        error: function(jqXHR, textStatus, errorThrown) {
+          scriptLog.log(jqXHR, textStatus, errorThrown);
+        },
+        success: function(data, textStatus, jqXHR) {
+          scriptLog.log(data, textStatus, jqXHR);
+        },
+        contentType: 'application/json',
+        data: JSON.stringify(postMsg),
+        dataType: 'json',
+        processData: false,
+        type: 'POST',
+        url: server + 'benchmark_run/',
+      });
+      return null;
+    },
+    saveCapture: function _saveCapture(capture, scriptId) {
+      var scriptServer = this;
+      var server = this.server;
+
+      var postMsg = {};
+      postMsg['script'] = scriptId;
+      postMsg['innerHtml'] = capture.innerHtml;
+      postMsg['nodeName'] = capture.nodeName;
+      
+      $.ajax({
+        error: function(jqXHR, textStatus, errorThrown) {
+          scriptLog.log(jqXHR, textStatus, errorThrown);
+        },
+        success: function(data, textStatus, jqXHR) {
+          scriptLog.log(data, textStatus, jqXHR);
+        },
+        contentType: 'application/json',
+        data: JSON.stringify(postMsg),
+        dataType: 'json',
+        processData: false,
+        type: 'POST',
+        url: server + 'capture/',
+      });
+      return null;
+    },
+    getCapture: function _getCapture(scriptId, cont) {
+      var scriptServer = this;
+      var server = this.server;
+
+      $.ajax({
+        error: function(jqXHR, textStatus, errorThrown) {
+          scriptLog.log(jqXHR, textStatus, errorThrown);
+        },
+        success: function(data, textStatus, jqXHR) {
+          scriptLog.log(data, textStatus, jqXHR);
+          var capture = data;
+          cont(capture);
+        },
+        url: server + 'capture/' + scriptId + '/?format=json',
+        type: 'GET',
+        processData: false,
+        accepts: 'application/json',
+        dataType: 'json'
+      });
+      return null;
+    },
   };
 
   return ScriptServer;

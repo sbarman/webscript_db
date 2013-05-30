@@ -73,7 +73,27 @@ class CommentAdmin(admin.ModelAdmin):
     ordering = ['id', 'name']
     search_fields = ('name', 'value')
 
+class BenchmarkAdmin(admin.ModelAdmin):
+    list_display = ('script', 'success_condition')
+    list_filter = ('script__name', 'script__id')
+    ordering = ['id', 'script__id']
+
+class BenchmarkRunAdmin(admin.ModelAdmin):
+    date_hierarchy = 'creation_date'
+    list_display = ('benchmark', 'successful', 'events_executed', 'errors')
+    list_filter = ('benchmark__script__name', 'benchmark__script__id')
+    ordering = ['id', 'benchmark__script__id']
+
+class CaptureAdmin(admin.ModelAdmin):
+    date_hierarchy = 'creation_date'
+    list_display = ('script', 'nodeName')
+    list_filter = ('script__name', 'script__id')
+    ordering = ['id', 'script__id']
+
 admin.site.register(models.Script, ScriptAdmin)
 admin.site.register(models.Event, EventAdmin)
 admin.site.register(models.Parameter, ParameterAdmin)
 admin.site.register(models.Comment, CommentAdmin)
+admin.site.register(models.Benchmark, BenchmarkAdmin)
+admin.site.register(models.BenchmarkRun, BenchmarkRunAdmin)
+admin.site.register(models.Capture, CaptureAdmin)

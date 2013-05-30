@@ -167,6 +167,7 @@ class ParameterHandler(BaseHandler):
     fields = ('name',
               'value',
               'data_type',
+              'id',
               ('event', ('id',)),
              )
     model = models.Parameter
@@ -191,7 +192,8 @@ class CommentHandler(BaseHandler):
     def read(self, request, script_id=None):
         base = model.objects
 
-        if event_id:
+        if script_id:
+            # TODO: fix this
             return base.filter(event=int(script_id))
         else:
             return base.all()
@@ -222,4 +224,92 @@ class CommentHandler(BaseHandler):
                     comment.save()
             return True
         else:
-            super(EventHandler, self).create(request)
+            super(CommentHandler, self).create(request)
+
+class BenchmarkHandler(BaseHandler):
+    allowed_methods = ('GET',)  # 'PUT')
+    fields = ('success_condition',
+              'id',
+              ('script', ('id', 'name')),
+             )
+    model = models.Benchmark
+
+    def read(self, request):
+        base = models.Benchmark.objects
+        return base.all()
+
+class BenchmarkRunHandler(BaseHandler):
+    allowed_methods = ('GET', 'POST')  # 'PUT')
+    fields = ('errors',
+              'events_executed',
+              'successful',
+              'id',
+              ('benchmark', ('id',)),
+             )
+    model = models.BenchmarkRun
+
+    def read(self, request):
+        base = model.objects
+        return base.all()
+
+    def create(self, request):
+        if request.content_type:
+            data = request.data
+            run = self.model()
+
+            if ('benchmark' not in data) or \
+               ('successful' not in data) or \
+               ('events_executed' not in data):
+                resp = rc.BAD_REQUEST
+                resp.write('Must include required fields')
+                return resp
+
+            if 'errors' in data:
+                run.errors = data['errors']
+
+            run.events_executed = data['events_executed']
+            run.successful = data['successful']
+
+            run.benchmark = models.Benchmark.objects.get(pk=data['benchmark'])
+
+            run.save()
+            return True
+        else:
+            super(BenchmarkRunHandler, self).create(request)
+
+class CaptureHandler(BaseHandler):
+    allowed_methods = ('GET', 'POST')  # 'PUT')
+    fields = ('innerHtml',
+              'nodeName',
+              ('script', ('id','name')),
+             )
+    model = models.Capture
+
+    def read(self, request, script_id=None):
+        base = self.model.objects
+
+        if script_id:
+            return base.filter(script=script_id).latest('creation_date')
+        else:
+            return base.all()  # Or base.filter(...)
+
+    def create(self, request):
+        if request.content_type:
+            data = request.data
+            capture = self.model()
+
+            if ('innerHtml' not in data) or \
+               ('nodeName' not in data) or \
+               ('script' not in data):
+                resp = rc.BAD_REQUEST
+                resp.write('Must include required fields')
+                return resp
+
+            capture.innerHtml = data['innerHtml']
+            capture.nodeName = data['nodeName']
+            capture.script = models.Script.objects.get(pk=data['script'])
+
+            capture.save()
+            return True
+        else:
+            super(CaptureHandler, self).create(request)
