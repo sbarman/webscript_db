@@ -63,11 +63,11 @@ function display() {
 }
 
 function match(script, replay) {
-  var scriptSeq = script.events.concat(script.comments);
+  var scriptSeq = script;//.events.concat(script.comments);
   scriptSeq.sort(function(a, b) {
     return a.execution_order - b.execution_order
   });
-  var replaySeq = replay.events.concat(replay.comments);
+  var replaySeq = replay;//.events.concat(replay.comments);
   replaySeq.sort(function(a, b) {
     return a.execution_order - b.execution_order
   });
