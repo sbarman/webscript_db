@@ -42,6 +42,10 @@ body {
   width: 480px;
 }
 
+.extGen {
+ border: solid green;
+}
+
 .event {
   font: 15px arial, sans-serif;
   border: 1px solid black;
@@ -55,3 +59,4 @@ body {
    white-space: -o-pre-wrap;   /* Opera 7 */    
    word-wrap: break-word;      /* IE */
 }
+

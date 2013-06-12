@@ -3,6 +3,7 @@ from django.shortcuts import render
 
 from webscript_backend.models import Script
 import json
+import subprocess
 
 def index(request):
     return HttpResponse("Hello, world. You're at the index.")
@@ -23,3 +24,7 @@ def compare(request):
 
 def demo(request):
     return render(request, 'demo.html', {})
+
+def demoUpdate(request):
+    subprocess.Popen('google-chrome --profile-directory="Demo"', shell=True)
+    return HttpResponse("demo update")

@@ -114,6 +114,8 @@ function getNode(eventOrComment, other) {
     var e = eventOrComment
     var newDiv = $("<div class='boxed wordwrap'></div>");
 
+    var extGen = false;
+
     newDiv.append("<b>[" + e.id + "]type:" + "</b>" + e.event_type + "<br/>");
     var parameters = e.parameters;
     parameters = parameters.sort(function(a,b) {
@@ -149,6 +151,8 @@ function getNode(eventOrComment, other) {
         if (value == '')
           value = '-';
 
+      } else if (param.name == 'extensionGenerated') {
+        extGen = true;
       } else {
         value = param.value;
       }
@@ -170,6 +174,12 @@ function getNode(eventOrComment, other) {
       newSpan.append('<br/>');
 
       newDiv.append(newSpan);
+    }
+    
+    if (extGen) {
+      newDiv.addClass('extGen');
+    } else {
+      newDiv.addClass('native');
     }
     return newDiv;
   } else {

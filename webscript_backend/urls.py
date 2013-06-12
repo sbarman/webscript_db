@@ -5,5 +5,6 @@ from webscript_backend import views
 urlpatterns = patterns('',
     url(r'^$', views.index, name='index'),
     url(r'^compare$', views.compare, name='compare'),
-    url(r'^demo$', views.demo, name='demo')
+    url(r'^demo$', views.demo, name='demo'),
+    url(r'^demoUpdate$', views.demoUpdate, name='demoUpdate')
 )
