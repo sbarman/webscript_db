@@ -29,12 +29,6 @@ class Script(models.Model):
 class Event(models.Model):
     event_type = models.CharField(max_length=128, help_text="The type of " + 
                                   "event to be replayed.")
-    dom_pre_event_state = models.TextField(help_text="State of DOM prior to" +
-                                           " Event firing", blank=True, 
-                                           null=True)
-    dom_post_event_state = models.TextField(help_text="State of DOM after " + 
-                                            "Event finished", blank=True,
-                                            null=True)
     version = models.CharField(max_length=32,
                                help_text="Event Format version for Event. " \
                                "Intended to allow backwards incompatible " \

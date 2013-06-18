@@ -51,9 +51,8 @@ class EventAdmin(admin.ModelAdmin):
     list_filter = ('script__name', 'script__id', 'script__user__username',
                    'event_type')
     ordering = ['script', 'execution_order']
-    search_fields = ('event_type', 'dom_pre_event_state',
-                     'dom_post_event_state', 'script__name','parameter__name',
-                     'parameter__value',)
+    search_fields = ('event_type',
+                     'script__name','parameter__name', 'parameter__value',)
     save_as = True
 
 class ParameterAdmin(admin.ModelAdmin):

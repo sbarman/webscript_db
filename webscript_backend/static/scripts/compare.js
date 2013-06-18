@@ -7,9 +7,9 @@ $('#script').change(function(event) {
   var val = event.target.value;
   console.log("getting script:", val);
 
-  server.getScript(val, false, function(id, data) {
-    console.log(data);
-    setScript(val, data);
+  server.getScript(val, false, function(id, events, comments) {
+    console.log(events, comments);
+    setScript(id, {events: events, comments:comments});
   });
 });
 
@@ -17,9 +17,9 @@ $('#script2').change(function(event) {
   var val = event.target.value;
   console.log("getting script:", val);
 
-  server.getScript(val, false, function(id, data) {
-    console.log(data);
-    setScript2(val, data);
+  server.getScript(val, false, function(id, events, comments) {
+    console.log(events, comments);
+    setScript2(id, {events: events, comments:comments});
   });
 });
 
@@ -50,9 +50,9 @@ function createReplayOption(replays) {
   $('#replays').append(replaySelect);
   $('#replaySelect').change(function(event) {
     var val = event.target.value;
-    server.getScript(val, false, function(id, data) {
-      console.log(data);
-      setScript2(data);
+    server.getScript(val, false, function(id, events, comments) {
+      console.log(events, comments);
+      setScript2(id, {events: events, comments:comments});
     });
   });
 }
@@ -63,11 +63,11 @@ function display() {
 }
 
 function match(script, replay) {
-  var scriptSeq = script;//.events.concat(script.comments);
+  var scriptSeq = script.events.concat(script.comments);
   scriptSeq.sort(function(a, b) {
     return a.execution_order - b.execution_order
   });
-  var replaySeq = replay;//.events.concat(replay.comments);
+  var replaySeq = replay.events.concat(replay.comments);
   replaySeq.sort(function(a, b) {
     return a.execution_order - b.execution_order
   });
@@ -76,12 +76,21 @@ function match(script, replay) {
   console.log('matching:', matching);
   
   $('#diagram').empty();
+
   var table = $('<table></table>')
+
+  // create filler cells so table doesn't collapse when elements are invisible
+  var row = $('<tr></tr>');
+  var cell = $('<td></td>');
+  cell.width(480);
+  row.append(cell).append(cell);
+  table.append(row);
+
   for (var i = 0, ii = matching.length; i < ii; ++i) {
     var m = matching[i];
-    var row = $('<tr></tr>');
+    row = $('<tr></tr>');
 
-    var cell = $('<td></td>');
+    cell = $('<td></td>');
     if ('seq1' in m) {
       cell.append(getNode(m.seq1, m.seq2));
     }
@@ -110,9 +119,11 @@ function getNode(eventOrComment, other) {
   if (eventOrComment == null)
     return "";
 
+  var newDiv = $("<div class='boxed wordwrap node'></div>");
+
   if ('event_type' in eventOrComment) {
     var e = eventOrComment
-    var newDiv = $("<div class='boxed wordwrap'></div>");
+    newDiv.addClass('event ' + e.event_type);
 
     var extGen = false;
 
@@ -132,8 +143,12 @@ function getNode(eventOrComment, other) {
       var param = parameters[i];
 
       var newSpan = $("<span><b>" + param.name + ":" + "</b></span>");
+      newSpan.addClass(param.name);
+
       if (other && getParam(other.parameters, param.name) != param.value)
         newSpan.addClass("diff");
+      else
+        newSpan.addClass('nodiff');
 
       var value;
       if (param.name == "deltas") {
@@ -181,10 +196,11 @@ function getNode(eventOrComment, other) {
     } else {
       newDiv.addClass('native');
     }
+
     return newDiv;
   } else {
-    var c = eventOrComment
-    var newDiv = $("<div class='boxed wordwrap'></div>");
+    var c = eventOrComment;
+    newDiv.addClass('comment');
     var newSpan = $("<span><b>" + c.name + ":" + "</b>" + c.value +
                     "<br/></span>");
     if (other && c.value != other.value)
@@ -239,4 +255,44 @@ var id = 0;
 function uid() {
   id += 1;
   return "id" + id;
+}
+
+function showProps(props) {
+  if (props == '*') {
+    $('.event > span').show();
+  } else {
+    var propArray = props.split(' ');
+    for (var i = 0, ii = propArray.length; i < ii; ++i)
+      $('.event > .' + propArray[i]).show();
+  }
+}
+
+function hideProps(props) {
+  if (props == '*') {
+    $('.event > span').hide();
+  } else {
+    var propArray = props.split(' ');
+    for (var i = 0, ii = propArray.length; i < ii; ++i)
+      $('.event > .' + propArray[i]).hide();
+  }
+}
+
+function showEvents(events) {
+  if (events == '*') {
+    $('.event').show();
+  } else {
+    var eventArray = events.split(' ');
+    for (var i = 0, ii = eventArray.length; i < ii; ++i)
+      $('.event.' + eventArray[i]).show();
+  }
+}
+
+function hideEvents(events) {
+  if (events == '*') {
+    $('.event').hide();
+  } else {
+    var eventArray = events.split(' ');
+    for (var i = 0, ii = eventArray.length; i < ii; ++i)
+      $('.event.' + eventArray[i]).hide();
+  }
 }

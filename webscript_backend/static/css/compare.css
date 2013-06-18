@@ -31,10 +31,6 @@ body {
   margin: 3px;
 }
 
-.diff {
-  color: red;
-}
-
 .boxed {
   border: 1px solid black;
   padding: 2px;
@@ -42,14 +38,18 @@ body {
   width: 480px;
 }
 
-.extGen {
- border: solid green;
-}
-
 .event {
   font: 15px arial, sans-serif;
   border: 1px solid black;
   overflow: hidden;
+}
+
+.extGen {
+ border: solid green;
+}
+
+.diff {
+  color: red;
 }
 
 .wordwrap { 

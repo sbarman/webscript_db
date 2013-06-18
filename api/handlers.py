@@ -82,8 +82,6 @@ class EventHandler(BaseHandler):
     fields = ('event_type',
               'execution_order',
               'id',
-              'dom_pre_event_state',
-              'dom_post_event_state',
               ('parameters', ()),
               ('script', ('id')),
              )
@@ -125,14 +123,6 @@ class EventHandler(BaseHandler):
 
                 if 'event_type' in event_data:
                     event.event_type = event_data['event_type']
-
-                if 'dom_pre_event_state' in event_data:
-                    event.dom_pre_event_state = \
-                            event_data['dom_pre_event_state']
-
-                if 'dom_post_event_state' in event_data:
-                    event.dom_post_event_state = \
-                            event_data['dom_post_event_state']
 
                 if 'execution_order' in event_data:
                     event.execution_order = event_data['execution_order']
@@ -190,11 +180,11 @@ class CommentHandler(BaseHandler):
     model = models.Comment
 
     def read(self, request, script_id=None):
-        base = model.objects
+        base = self.model.objects
 
         if script_id:
             # TODO: fix this
-            return base.filter(event=int(script_id))
+            return base.filter(script=int(script_id))
         else:
             return base.all()
 
@@ -249,7 +239,7 @@ class BenchmarkRunHandler(BaseHandler):
     model = models.BenchmarkRun
 
     def read(self, request):
-        base = model.objects
+        base = self.model.objects
         return base.all()
 
     def create(self, request):
