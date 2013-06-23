@@ -21,6 +21,13 @@ class ScriptAdmin(admin.ModelAdmin):
         queryset.delete()
     delete_script.short_description = "Delete selected scripts (no " + \
                                       " confirmation)"
+class ScriptParameterAdmin(admin.ModelAdmin):
+    date_hierarchy = 'creation_date'
+    list_display = ('name', 'value', 'script')
+    list_filter = ('script__name', 'script__id',
+                   'script__user__username', 'value')
+    ordering = ['id', 'name']
+    search_fields = ('name', 'value')
 
 class InlineParameter(admin.TabularInline):
     model = models.Parameter
@@ -90,6 +97,7 @@ class CaptureAdmin(admin.ModelAdmin):
     ordering = ['id', 'script__id']
 
 admin.site.register(models.Script, ScriptAdmin)
+admin.site.register(models.ScriptParameter, ScriptParameterAdmin)
 admin.site.register(models.Event, EventAdmin)
 admin.site.register(models.Parameter, ParameterAdmin)
 admin.site.register(models.Comment, CommentAdmin)

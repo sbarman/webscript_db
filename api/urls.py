@@ -3,6 +3,7 @@ from piston.resource import Resource
 from api import handlers
 
 script_handler = Resource(handlers.ScriptHandler)
+script_param_handler = Resource(handlers.ScriptParameterHandler)
 event_handler = Resource(handlers.EventHandler)
 param_handler = Resource(handlers.ParameterHandler)
 user_handler = Resource(handlers.UserHandler)
@@ -14,6 +15,8 @@ capture_handler = Resource(handlers.CaptureHandler)
 urlpatterns = patterns('',
    url(r'^script/(?P<script_id>\d+)/', script_handler),
    url(r'^script/(?P<script_name>[^/]+)/', script_handler),
+   url(r'^script_param/', script_param_handler),
+   url(r'^script_param/(?P<script_id>\d+)/', script_param_handler),
    url(r'^script/', script_handler),
    url(r'^event/(?P<event_id>[^/]+)/', event_handler),
    url(r'^event/', event_handler),

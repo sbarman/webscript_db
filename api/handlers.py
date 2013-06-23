@@ -77,6 +77,57 @@ class ScriptHandler(BaseHandler):
         else:
             super(ScriptHandler, self).create(request)
 
+class ScriptParameterHandler(BaseHandler):
+    allowed_methods = ('GET', 'POST')
+    fields = ('name',
+              'value',
+              'id',
+              ('script', ('id',)),
+             )
+    model = models.ScriptParameter
+
+    def read(self, request, script_id=None):
+        base = self.model.objects
+
+        if script_id:
+            return base.filter(script=int(script_id))
+        else:
+            return base.all()
+
+    def create(self, request):
+        if request.content_type:
+            data = request.data
+
+            if 'script_id' not in data:
+                resp = rc.BAD_REQUEST
+                resp.write('Must include script_id: {"script_id": <id>, '
+                           '"params": [...], }')
+                return resp
+
+            script = models.Script.objects.get(pk=data['script_id'])
+
+            # Bail if there is no events
+            if 'params' not in data:
+                resp = rc.BAD_REQUEST
+                resp.write('Must include list of events: {"script_id": <id>, '
+                           '"params": [...], }')
+                return resp
+
+            # Handle all of the events
+            for param_data in data['params']:
+                param = self.model()
+                param.script = script
+
+                if 'name' in param_data and 'value' in param_data:
+                    param.name = param_data['name']
+                    param.value = param_data['value']
+
+                param.save()
+
+            return True
+        else:
+            super(EventHandler, self).create(request)
+
 class EventHandler(BaseHandler):
     allowed_methods = ('GET', 'POST')  # 'PUT')
     fields = ('event_type',

@@ -25,6 +25,22 @@ class Script(models.Model):
     class Meta:
         ordering = ['creation_date']
 
+class ScriptParameter(models.Model):
+    name = models.CharField(max_length=64)
+    value = models.TextField()
+
+    script = models.ForeignKey('Script', blank=True, null=True, default=None,
+                              related_name="parameters")
+
+    creation_date = models.DateTimeField(auto_now_add=True)
+    modification_date = models.DateTimeField(auto_now=True, auto_now_add=True)
+
+    def __unicode__(self):
+        value = self.value
+        if len(value) > 32:
+            value = value[:32]
+        return u'Param: {} - {} --> Script: {}'.\
+               format(self.name, value, self.script)
 
 class Event(models.Model):
     event_type = models.CharField(max_length=128, help_text="The type of " + 
@@ -51,7 +67,6 @@ class Event(models.Model):
 
     class Meta:
         ordering = ['creation_date']
-
 
 class Parameter(models.Model):
     name = models.CharField(max_length=64)
@@ -104,10 +119,10 @@ class Benchmark(models.Model):
                                          blank=False, null=False)
     def __unicode__(self):
         return unicode(self.script)
-        
     
 class BenchmarkRun(models.Model):
-    benchmark = models.ForeignKey('Benchmark', blank=False, null=False)
+    benchmark = models.ForeignKey('Benchmark', blank=False, null=False,
+                                  related_name='benchmark_runs')
     creation_date = models.DateTimeField(auto_now_add=True)
     modification_date = models.DateTimeField(auto_now=True, auto_now_add=True)
     errors = models.TextField(help_text="Errors raised during execution",
