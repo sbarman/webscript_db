@@ -8,10 +8,17 @@ class InlineEvent(admin.TabularInline):
     fields = ('event_type', 'execution_order')
     ordering = ['script', 'execution_order']
 
+class InlineParam(admin.TabularInline):
+    model = models.ScriptParameter
+
+    date_hierarchy = 'creation_date'
+    fields = ('name', 'value')
+    ordering = ['name']
+
 class ScriptAdmin(admin.ModelAdmin):
     actions = ['delete_script']
     date_hierarchy = 'creation_date'
-    inlines =  [InlineEvent]
+    inlines =  [InlineEvent, InlineParam]
     list_display = ('name', 'user', 'creation_date', 'description', 'parent')
     list_filter = ('user__username',)
     search_fields = ('^name', 'description', '^user__username')
