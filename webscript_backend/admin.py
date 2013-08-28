@@ -1,6 +1,8 @@
 from django.contrib import admin
 from webscript_backend import models
 
+import copy
+
 class InlineEvent(admin.TabularInline):
     model = models.Event
 
@@ -16,7 +18,7 @@ class InlineParam(admin.TabularInline):
     ordering = ['name']
 
 class ScriptAdmin(admin.ModelAdmin):
-    actions = ['delete_script']
+    actions = ['delete_script', 'copy_script']
     date_hierarchy = 'creation_date'
     inlines =  [InlineEvent, InlineParam]
     list_display = ('name', 'user', 'creation_date', 'description', 'parent')
@@ -28,6 +30,29 @@ class ScriptAdmin(admin.ModelAdmin):
         queryset.delete()
     delete_script.short_description = "Delete selected scripts (no " + \
                                       " confirmation)"
+    
+    def copy_script(modeladmin, request, queryset):
+        # s is an instance of Script
+        for s in queryset:
+            s_copy = copy.copy(s) # (2) django copy object
+            s_copy.id = None   # (3) set 'id' to None to create new object
+            s_copy.save()    # initial save
+
+            for e in s.events.all():
+                e_copy = copy.copy(e)
+                e_copy.id = None
+                e_copy.script = s_copy
+                e_copy.save()
+
+                for p in e.parameters.all():
+                    p_copy = copy.copy(p)
+                    p_copy.id = None
+                    p_copy.event = e_copy
+                    p_copy.save()
+
+
+    copy_script.short_description = "Make a shallow copy of the script" 
+
 class ScriptParameterAdmin(admin.ModelAdmin):
     date_hierarchy = 'creation_date'
     list_display = ('name', 'value', 'script')

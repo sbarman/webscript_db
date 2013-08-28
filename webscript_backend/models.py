@@ -7,9 +7,9 @@ from django.contrib.auth.models import User
 class Script(models.Model):
     name = models.CharField(max_length=128)
     description = models.TextField(help_text="Please describe what the " +
-                                   "script does.", blank=True, null=True)
+                                   "script does.", blank=True)
     notes = models.TextField(help_text="Comments, questions, problems, etc.",
-                             blank=True, null=True)
+                             blank=True)
     user = models.ForeignKey(User,
                              help_text="The user who submitted the script.")
     creation_date = models.DateTimeField(auto_now_add=True)
@@ -27,7 +27,7 @@ class Script(models.Model):
 
 class ScriptParameter(models.Model):
     name = models.CharField(max_length=64)
-    value = models.TextField()
+    value = models.TextField(blank=True)
 
     script = models.ForeignKey('Script', blank=True, null=True, default=None,
                               related_name="parameters")
@@ -70,15 +70,14 @@ class Event(models.Model):
 
 class Parameter(models.Model):
     name = models.CharField(max_length=64)
-    value = models.TextField()
+    value = models.TextField(blank=True)
     data_type = models.CharField(max_length=32, 
                                  choices=[('number', 'number'),
                                           ('object', 'object'),
                                           ('boolean', 'boolean'),
                                           ('string', 'string')])
 
-    event = models.ForeignKey('Event', blank=True, null=True, default=None,
-                              related_name="parameters")
+    event = models.ForeignKey('Event', related_name="parameters")
 
     creation_date = models.DateTimeField(auto_now_add=True)
     modification_date = models.DateTimeField(auto_now=True, auto_now_add=True)
@@ -93,10 +92,9 @@ class Parameter(models.Model):
 
 class Comment(models.Model):
     name = models.CharField(max_length=32) 
-    value = models.TextField()
+    value = models.TextField(blank=True)
 
-    script = models.ForeignKey('Script', blank=True, null=True, default=None,
-                               related_name="comments")
+    script = models.ForeignKey('Script', related_name="comments")
     execution_order = models.FloatField(help_text="Floating point number of "\
                                         "execution. This allows for " \
                                         "reconstructing the proper order of "\
@@ -116,7 +114,7 @@ class Benchmark(models.Model):
     script = models.ForeignKey('Script', blank=False, null=False)
     success_condition = models.TextField(help_text="Function to evaluate to " +
                                          "check if benchmark was successful",
-                                         blank=False, null=False)
+                                         blank=True, null=False)
     def __unicode__(self):
         return unicode(self.script)
     
@@ -136,8 +134,8 @@ class BenchmarkRun(models.Model):
    
 class Capture(models.Model):
     script = models.ForeignKey('Script', blank=False, null=False)
-    innerHtml = models.TextField()
-    nodeName = models.TextField()
+    innerHtml = models.TextField(null=False)
+    nodeName = models.TextField(null=False)
     
     creation_date = models.DateTimeField(auto_now_add=True)
     modification_date = models.DateTimeField(auto_now=True, auto_now_add=True)
