@@ -112,7 +112,7 @@ class Comment(models.Model):
 
 class Benchmark(models.Model):
     script = models.ForeignKey('Script', blank=False, null=False)
-    success_condition = models.TextField(help_text="Function to evaluate to " +
+    success_captures = models.TextField(help_text="Value of captures to " +
                                          "check if benchmark was successful",
                                          blank=True, null=False)
     def __unicode__(self):
@@ -127,6 +127,10 @@ class BenchmarkRun(models.Model):
                               blank=True, null=True)
     events_executed = models.FloatField(help_text="Execution order of last " +
                                         "event executed in replay")
+    events_total = models.FloatField(help_text="Execution order of last " +
+                                        "event executed in replay")
+    notes = models.TextField(help_text="Misc notes",
+                              blank=True, null=True)
     successful = models.BooleanField()
 
     def __unicode__(self):
@@ -135,6 +139,7 @@ class BenchmarkRun(models.Model):
 class Capture(models.Model):
     script = models.ForeignKey('Script', blank=False, null=False)
     innerHtml = models.TextField(null=False)
+    innerText = models.TextField(null=False)
     nodeName = models.TextField(null=False)
     
     creation_date = models.DateTimeField(auto_now_add=True)

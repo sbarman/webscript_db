@@ -112,7 +112,7 @@ class CommentAdmin(admin.ModelAdmin):
     search_fields = ('name', 'value')
 
 class BenchmarkAdmin(admin.ModelAdmin):
-    list_display = ('script', 'success_condition')
+    list_display = ('script', 'success_captures')
     list_filter = ('script__name', 'script__id')
     ordering = ['id', 'script__id']
 
