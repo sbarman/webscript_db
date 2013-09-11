@@ -19,6 +19,8 @@ webscript_backend django app.
 
     cd webscriptdb/
     python manage.py syncdb    # First time only to create DB
+    python manage.py migrate webscript_backend
+    
     python manage.py runserver 
   
 Useful starting URLs:
