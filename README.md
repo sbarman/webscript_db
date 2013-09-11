@@ -17,6 +17,10 @@ the specific versions won't clash with your current system.
 Add this project directory to the PYTHONPATH so django can find the
 webscript_backend django app.
 
+The project is currently set up to use a sqlite database. This will work
+if you are simply testing out the tool, but we recommend upgrading to
+another database for a full installation.
+
     cd webscriptdb/
     python manage.py syncdb    # First time only to create DB
     python manage.py migrate webscript_backend
