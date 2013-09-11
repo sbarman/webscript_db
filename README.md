@@ -19,7 +19,9 @@ webscript_backend django app.
 
 The project is currently set up to use a sqlite database. This will work
 if you are simply testing out the tool, but we recommend upgrading to
-another database for a full installation.
+another database for a full installation. Once everything is configured,
+create and sync the database using the following commands, and start the server
+by running the last line.
 
     cd webscriptdb/
     python manage.py syncdb    # First time only to create DB
@@ -27,7 +29,7 @@ another database for a full installation.
     
     python manage.py runserver 
   
-Useful starting URLs:
+The followings links may be useful:
 * http://localhost:8000/admin/
 * http://localhost:8000/api/
   * http://localhost:8000/api/(script|event|parameter|replay)/
