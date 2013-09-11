@@ -269,7 +269,7 @@ class CommentHandler(BaseHandler):
 
 class BenchmarkHandler(BaseHandler):
     allowed_methods = ('GET',)  # 'PUT')
-    fields = ('success_condition',
+    fields = ('success_captures',
               'id',
               ('script', ('id', 'name')),
              )
@@ -283,7 +283,9 @@ class BenchmarkRunHandler(BaseHandler):
     allowed_methods = ('GET', 'POST')  # 'PUT')
     fields = ('errors',
               'events_executed',
+              'events_total',
               'successful',
+              'notes'
               'id',
               ('benchmark', ('id',)),
              )
@@ -300,6 +302,7 @@ class BenchmarkRunHandler(BaseHandler):
 
             if ('benchmark' not in data) or \
                ('successful' not in data) or \
+               ('events_total' not in data) or \
                ('events_executed' not in data):
                 resp = rc.BAD_REQUEST
                 resp.write('Must include required fields')
@@ -308,7 +311,11 @@ class BenchmarkRunHandler(BaseHandler):
             if 'errors' in data:
                 run.errors = data['errors']
 
+            if 'notes' in data:
+                run.notes = data['notes']
+
             run.events_executed = data['events_executed']
+            run.events_total = data['events_total']
             run.successful = data['successful']
 
             run.benchmark = models.Benchmark.objects.get(pk=data['benchmark'])
@@ -321,6 +328,7 @@ class BenchmarkRunHandler(BaseHandler):
 class CaptureHandler(BaseHandler):
     allowed_methods = ('GET', 'POST')  # 'PUT')
     fields = ('innerHtml',
+              'innerText',
               'nodeName',
               ('script', ('id','name')),
              )
@@ -341,6 +349,7 @@ class CaptureHandler(BaseHandler):
 
             if ('innerHtml' not in data) or \
                ('nodeName' not in data) or \
+               ('innerText' not in data) or \
                ('script' not in data):
                 resp = rc.BAD_REQUEST
                 resp.write('Must include required fields')
@@ -348,6 +357,7 @@ class CaptureHandler(BaseHandler):
 
             capture.innerHtml = data['innerHtml']
             capture.nodeName = data['nodeName']
+            capture.innerText = data['innerText']
             capture.script = models.Script.objects.get(pk=data['script'])
 
             capture.save()
