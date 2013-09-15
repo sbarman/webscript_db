@@ -20,7 +20,7 @@ class Script(models.Model):
                                related_name="replays", blank=True, null=True)
 
     def __unicode__(self):
-        return u'{} - {}'.format(self.name, self.creation_date)
+        return u'{}'.format(self.name)
    
     class Meta:
         ordering = ['creation_date']

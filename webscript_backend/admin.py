@@ -118,7 +118,8 @@ class BenchmarkAdmin(admin.ModelAdmin):
 
 class BenchmarkRunAdmin(admin.ModelAdmin):
     date_hierarchy = 'creation_date'
-    list_display = ('benchmark', 'successful', 'events_executed', 'errors')
+    list_display = ('benchmark', 'creation_date', 'successful', 
+                    'events_executed', 'notes', 'errors')
     list_filter = ('benchmark__script__name', 'benchmark__script__id')
     ordering = ['id', 'benchmark__script__id']
 
