@@ -277,7 +277,7 @@ class BenchmarkHandler(BaseHandler):
 
     def read(self, request):
         base = models.Benchmark.objects
-        return base.all()
+        return base.filter(enabled=True)
 
 class BenchmarkRunHandler(BaseHandler):
     allowed_methods = ('GET', 'POST')  # 'PUT')

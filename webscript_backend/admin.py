@@ -112,14 +112,23 @@ class CommentAdmin(admin.ModelAdmin):
     search_fields = ('name', 'value')
 
 class BenchmarkAdmin(admin.ModelAdmin):
-    list_display = ('script', 'success_captures')
-    list_filter = ('script__name', 'script__id')
+    list_display = ('script', 'success_captures', 'enabled')
+    list_filter = ('script__name', 'script__id', 'enabled')
     ordering = ['id', 'script__id']
 
 class BenchmarkRunAdmin(admin.ModelAdmin):
+    def display_errors(self, obj):
+        errors = obj.errors
+        if errors == None:
+            errors = ''
+        if len(errors) > 48:
+            errors = errors[:48] + '...'
+        return errors
+    display_errors.short_description = 'errors'
+
     date_hierarchy = 'creation_date'
     list_display = ('benchmark', 'creation_date', 'successful', 
-                    'events_executed', 'notes', 'errors')
+                    'events_executed', 'notes', 'display_errors')
     list_filter = ('benchmark__script__name', 'benchmark__script__id')
     ordering = ['id', 'benchmark__script__id']
 

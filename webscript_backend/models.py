@@ -115,6 +115,8 @@ class Benchmark(models.Model):
     success_captures = models.TextField(help_text="Value of captures to " +
                                          "check if benchmark was successful",
                                          blank=True, null=False)
+    enabled = models.BooleanField()
+
     def __unicode__(self):
         return unicode(self.script)
     

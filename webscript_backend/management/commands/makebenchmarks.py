@@ -1,31 +1,44 @@
-from django.core.management.base import NoArgsCommand, CommandError
+from django.core.management.base import BaseCommand, CommandError
 from webscript_backend import models
+import json
 
-class Command(NoArgsCommand):
-    args = ''
+class Command(BaseCommand):
+    args = '<script_id script_id ...>'
     help = 'create benchmarks from scripts'
 
-    def handle_noargs(self, **options):
-        scripts = models.Script.objects.all().order_by('-creation_date')
+    def handle(self, *args, **options):
         benchmarks = models.Benchmark.objects.all()
-
         benchmark_scripts = {}
         for b in benchmarks:
-            benchmark_scripts[b.script.name] = True
+            benchmark_scripts[b.script.id] = True
 
-        new_scripts = []
-        for s in scripts:
-            if not s.name in benchmark_scripts:
-                benchmark_scripts[s.name] = True
-                self.create_benchmark(s)
+        for script_id in args:
+            try:
+                script = models.Script.objects.get(id=script_id)
+
+                if not script.id in benchmark_scripts:
+                    benchmark_scripts[script_id] = True
+                    self.create_benchmark(script)
+            except Exception as e:
+                print e
 
     def create_benchmark(self, script):
         t = ''
         while t != 'y' and t != 'n':
-            t = raw_input(u'create benchmark for {}: '.format(script.name))
+            t = raw_input(u'Create benchmark for {}({}): '.format(script.name,
+                    script.id))
         
         if t:
             b = models.Benchmark()
             b.script = script
-            b.success_condition = ""
+            captures = [];
+            for event in script.events.all():
+                if (event.event_type == 'capture'):
+                    target = json.loads(
+                            event.parameters.get(name='target').value)
+                    text = target['snapshot']['prop']['innerText']
+                    captures.append(text)
+            b.success_captures = json.dumps(captures)
+            b.enabled = True
             b.save()
+            print "Saving benchmark " + script.name
