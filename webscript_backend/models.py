@@ -131,8 +131,8 @@ class BenchmarkRun(models.Model):
                                         "event executed in replay")
     events_total = models.FloatField(help_text="Execution order of last " +
                                         "event executed in replay")
-    notes = models.TextField(help_text="Misc notes",
-                              blank=True, null=True)
+    notes = models.TextField(help_text="Misc notes", blank=True, null=True)
+    log = models.TextField(help_text="Info log", blank=True, null=True, default="")
     successful = models.BooleanField()
 
     def __unicode__(self):

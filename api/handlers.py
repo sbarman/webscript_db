@@ -286,6 +286,7 @@ class BenchmarkRunHandler(BaseHandler):
               'events_total',
               'successful',
               'notes'
+              'log',
               'id',
               ('benchmark', ('id',)),
              )
@@ -310,9 +311,18 @@ class BenchmarkRunHandler(BaseHandler):
 
             if 'errors' in data:
                 run.errors = data['errors']
+            else:
+                run.errors = ""
 
             if 'notes' in data:
                 run.notes = data['notes']
+            else:
+                run.notes = ""
+
+            if 'log' in data:
+                run.log = data['log']
+            else:
+                run.log = ""
 
             run.events_executed = data['events_executed']
             run.events_total = data['events_total']

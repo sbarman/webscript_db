@@ -21,7 +21,7 @@ class ScriptAdmin(admin.ModelAdmin):
     actions = ['delete_script', 'copy_script']
     date_hierarchy = 'creation_date'
     inlines =  [InlineEvent, InlineParam]
-    list_display = ('name', 'user', 'creation_date', 'description', 'parent')
+    list_display = ('name', 'id', 'user', 'creation_date', 'description', 'parent')
     list_filter = ('user__username',)
     search_fields = ('^name', 'description', '^user__username')
     save_as = True
