@@ -9,7 +9,7 @@ def index(request):
     return HttpResponse("Hello, world. You're at the index.")
 
 def compare(request):
-    scripts_list = Script.objects.order_by('id')
+    scripts_list = Script.objects.order_by('id').reverse();
     script_to_replays = {};
     for script in scripts_list:
         replays = script.replays.all();

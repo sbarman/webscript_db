@@ -62,7 +62,34 @@ function display() {
     match(curScript, curScript2);
 }
 
+function normalize(events) {
+  for (var i = 0, ii = events.length; i < ii; ++i) {
+    var params = events[i].parameters;
+    var newParams = [];
+    for (var j = 0, jj = params.length; j < jj; ++j) {
+      var param = params[j];
+      if (param.data_type == 'object') {
+        var obj = JSON.parse(param.value);
+        for (var k in obj) {
+          var v = obj[k];
+          newParams.push({
+            data_type: typeof v,
+            name: param.name + '.' + k,
+            value: JSON.stringify(v)
+          });
+        }
+      } else {
+        newParams.push(param);
+      }
+    }
+    events[i].parameters = newParams;
+  } 
+}
+
 function match(script, replay) {
+  normalize(script.events);
+  normalize(replay.events);
+
   var scriptSeq = script.events.concat(script.comments);
   scriptSeq.sort(function(a, b) {
     return a.execution_order - b.execution_order
