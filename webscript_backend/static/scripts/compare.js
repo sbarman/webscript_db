@@ -239,8 +239,19 @@ function getNode(eventOrComment, other) {
 }
 
 function lcs(seq1, idx1, seq2, idx2, hash) {
-  if (idx1 >= seq1.length || idx2 >= seq2.length)
-    return {length: 0, matches: []};
+  if (idx1 >= seq1.length) {
+    var matches = [];
+    for (var i = idx2, ii = seq2.length; i < ii; ++i) {
+      matches.push({type: 'mismatch', seq1: null, seq2: seq2[i]});
+    }
+    return {length: 0, matches: matches};
+  } else if (idx2 >= seq2.length) {
+    var matches = [];
+    for (var i = idx1, ii = seq1.length; i < ii; ++i) {
+      matches.push({type: 'mismatch', seq1: seq1[i], seq2: null});
+    }
+    return {length: 0, matches: matches};
+  }
 
   var cur1 = seq1[idx1];
   var cur2 = seq2[idx2];
