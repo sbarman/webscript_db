@@ -28,3 +28,6 @@ def demo(request):
 def demoUpdate(request):
     subprocess.Popen('google-chrome --profile-directory="Demo"', shell=True)
     return HttpResponse("demo update")
+
+def trigger(request):
+    return render(request, 'trigger.html', {})
