@@ -47,11 +47,34 @@ var d3Nodes = canvas.selectAll('.node').data(nodes);
 var d3EventLinks = canvas.selectAll('.eventlink').data(eventLinks);
 var d3CausalLinks = canvas.selectAll('.causallink').data(causalLinks);
 
-addScript = function _addScript(scriptId) {
-  server.getScript(scriptId, true, function(id, events) {
-    scripts.push({id: id, events: events});
+var getScriptIndex = function _scriptIndex(scriptId) {
+  var scriptIndex = -1;
+  for (var i = 0, ii = scripts.length; i < ii; ++i) {
+    if (scripts[i].id == scriptId) {
+      return i;
+    }
+  }
+  return null;
+}
 
-    var scriptIndex = scripts.length - 1;
+addScript = function _addScript(scriptId) {
+  if (getScriptIndex(scriptId))
+    return;
+
+  scripts.push({id: scriptId});
+
+  server.getScript(scriptId, function(item) {
+    var scriptIndex = getScriptIndex(scriptId);
+
+    if (item == null) {
+      scripts.splice(scriptIndex, 1);
+      return;
+    }
+
+    scripts[scriptIndex] = item;
+    var id = item.id;
+    var events = item.events;
+
     var newNodes = [];
     var idToNode = {};
 
@@ -65,11 +88,10 @@ addScript = function _addScript(scriptId) {
         x: 0,
         y: 0
       }
-      nodes.push(o);
-      idToNode[e.msg.value.meta.id] = o;
+      idToNode[e.meta.id] = o;
       newNodes.push(o);
       
-      var waitEvent = e.msg.value.timing.waitEvent;
+      var waitEvent = e.timing.waitEvent;
       if (waitEvent) {
         causalLinks.push({
           source: o,
@@ -77,9 +99,22 @@ addScript = function _addScript(scriptId) {
         });
       }
     }
+
+    for (var i = 0, ii = nodes.length; i < ii; ++i) {
+      for (var j = 0, jj = newNodes.length; j < jj; ++j) {
+        var oldNode = nodes[i].event;
+        var newNode = newNodes[j].event;
+        if (oldNode.type == newNode.type) {
+          var type = oldNode.type;
+          if (eventEquality[type](oldNode, newNode)) {
+            eventLinks.push({node1: nodes[i], node2: newNodes[j]}); 
+          }
+        }
+      }
+    }
+    nodes = nodes.concat(newNodes);
     updateD3();
   });
-
 }
 
 function updateD3() {
@@ -104,7 +139,7 @@ function updateD3() {
     .attr('cy', function(d) { return d.y; })
     .attr('r', 3)
     .attr('fill', function(d) {
-      if (d.event.msg.value.timing.waitEvent === 0) {
+      if (d.event.timing.waitTime === 0) {
         return 'red';
       }
       return 'grey';
@@ -157,17 +192,51 @@ function updateD3() {
       return path;
     });
 
+  d3EventLinks = canvas.selectAll('.eventLinks').data(eventLinks);
+
+  d3EventLinks.exit().transition().remove();
+
+  d3EventLinks.enter().append('line').attr('class', 'eventLinks')
+    .attr('x1', function(d) { return d.node1.x; })
+    .attr('y1', function(d) { return d.node1.y; })
+    .attr('x2', function(d) { return d.node2.x; })
+    .attr('y2', function(d) { return d.node2.y; })
+    .attr('stroke', 'black')
+    .attr('stroke-width', 1)
+    .attr('fill', 'none');
+
+  d3EventLinks.transition()
+    .attr('x1', function(d) { return d.node1.x; })
+    .attr('y1', function(d) { return d.node1.y; })
+    .attr('x2', function(d) { return d.node2.x; })
+    .attr('y2', function(d) { return d.node2.y; })
 }
 
 var eventEquality = {
-  dom: ,
-
-
-
+  dom: function domEqual(e1, e2) {
+    return e1.target.xpath == e2.target.xpath &&
+      e1.frame.URL == e2.frame.URL &&
+      e1.data.type == e2.data.type;
+  },
+  start: function startEqual(e1, e2) {
+    return e1.data.method == e2.data.method &&
+      e1.data.url == e2.data.url &&
+      e1.data.type == e2.data.type;
+  },
+  completed: function completedEqual(e1, e2) {
+    return e1.data.method == e2.data.method &&
+      e1.data.url == e2.data.url &&
+      e1.data.type == e2.data.type;
+  },
+  capture: function captureEqual(e1, e2) {
+    return e1.target.xpath == e2.target.xpath &&
+      e1.frame.URL == e2.frame.URL;
+  }
 };
-
-addScript(2745);
 
 })();
 
-
+var scripts = [1, 31];
+scripts.forEach(function(id) {
+  addScript(id);
+});

@@ -3,25 +3,20 @@ var curScript2 = null;
 
 var server = new ScriptServer("api/")
 
-$('#script').change(function(event) {
-  var val = event.target.value;
-  console.log("getting script:", val);
+function getScriptCallback(scriptCallback) {
+  return (function(e) {
+    var val = e.target.value;
+    console.log("getting script:", val);
 
-  server.getScript(val, false, function(id, events, comments) {
-    console.log(events, comments);
-    setScript(id, {events: events, comments:comments});
+    server.getScript(val, function(item) {
+      console.log(item);
+      scriptCallback(item.id, item.events);
+    });
   });
-});
+}
 
-$('#script2').change(function(event) {
-  var val = event.target.value;
-  console.log("getting script:", val);
-
-  server.getScript(val, false, function(id, events, comments) {
-    console.log(events, comments);
-    setScript2(id, {events: events, comments:comments});
-  });
-});
+$('#script').change(getScriptCallback(setScript));
+$('#script2').change(getScriptCallback(setScript2));
 
 function setScript(id, script) {
   curScript = script;
@@ -48,13 +43,7 @@ function createReplayOption(replays) {
   replaySelect += '</select>';
 
   $('#replays').append(replaySelect);
-  $('#replaySelect').change(function(event) {
-    var val = event.target.value;
-    server.getScript(val, false, function(id, events, comments) {
-      console.log(events, comments);
-      setScript2(id, {events: events, comments:comments});
-    });
-  });
+  $('#replaySelect').change(getScriptCallback(setScript2));
 }
 
 function display() {
@@ -62,44 +51,14 @@ function display() {
     match(curScript, curScript2);
 }
 
-function normalize(events) {
-  for (var i = 0, ii = events.length; i < ii; ++i) {
-    var params = events[i].parameters;
-    var newParams = [];
-    for (var j = 0, jj = params.length; j < jj; ++j) {
-      var param = params[j];
-      if (param.data_type == 'object') {
-        var obj = JSON.parse(param.value);
-        for (var k in obj) {
-          var v = obj[k];
-          newParams.push({
-            data_type: typeof v,
-            name: param.name + '.' + k,
-            value: JSON.stringify(v)
-          });
-        }
-      } else {
-        newParams.push(param);
-      }
-    }
-    events[i].parameters = newParams;
-  } 
-}
+function match(scriptEvents, replayEvents) {
+  scriptEvents = normalize(scriptEvents);
+  replayEvents = normalize(replayEvents);
 
-function match(script, replay) {
-  normalize(script.events);
-  normalize(replay.events);
+  console.log('scripts:', scriptEvents, replayEvents);
 
-  var scriptSeq = script.events.concat(script.comments);
-  scriptSeq.sort(function(a, b) {
-    return a.execution_order - b.execution_order
-  });
-  var replaySeq = replay.events.concat(replay.comments);
-  replaySeq.sort(function(a, b) {
-    return a.execution_order - b.execution_order
-  });
-  console.log('scripts:', scriptSeq, replaySeq);
-  var matching = lcs(scriptSeq, 0, replaySeq, 0, {}).matches;
+  var matching = lcs(scriptEvents, 0, replayEvents, 0, {}).matches;
+
   console.log('matching:', matching);
   
   $('#diagram').empty();
@@ -133,109 +92,121 @@ function match(script, replay) {
   $('#diagram').append(table);
 }
 
-function getParam(parameters, name) {
+function normalize(events) {
+  var normalizedEvents = [];
+
+  function flatten(data, prefix, level) {
+    if (level == 0 || typeof data != 'object')
+      return [{name: prefix, value: JSON.stringify(data)}];
+
+    var collect = [];
+    for (key in data) {
+      collect = collect.concat(flatten(data[key], prefix + '.' + key, level - 1));
+    }
+    return collect;
+  }
+
+  for (var i = 0, ii = events.length; i < ii; ++i) {
+    var e = events[i];
+
+    if (e.type == 'dom')
+      e.type = 'dom:' + e.data.type;
+
+    normalizedEvents.push(flatten(e, 'e', 2));
+  }
+  return normalizedEvents;
+}
+
+function getNode(e, other) {
+  if (e == null)
+    return "";
+
+  var newDiv = $("<div class='boxed wordwrap node'></div>");
+
+  var extGen = false;
+
+  newDiv.append("<b>type:" + "</b>" + getParam('e.type', e) + "<br/>");
+  e = e.sort(function(a,b) {
+    a = a.name.toLowerCase();
+    b = b.name.toLowerCase();
+    if (a < b)
+      return -1;
+    else if (a > b)
+      return 1;
+    else
+      return 0;
+  });
+  for (var i = 0, ii = e.length; i < ii; ++i) {
+    var param = e[i];
+    var name = param.name;
+    var value = param.value;
+
+    var newSpan = $("<span><b>" + name + ":" + "</b></span>");
+    newSpan.addClass(name);
+
+    if (other && getParam(name, other) != value)
+      newSpan.addClass("diff");
+    else
+      newSpan.addClass('nodiff');
+
+/*
+    if (param.name == "deltas") {
+      var valueObj = eval(param.value);
+      value = '';
+      for (var j = 0, jj = valueObj.length; j < jj; ++j) {
+        var delta = valueObj[j];
+        value += delta.type + '\n';
+        if (delta.divergingProp) {
+          var prop = delta.divergingProp;
+          value += prop + ":" +  delta.orig.prop[prop] + " -> " + 
+                   delta.changed.prop[prop] + '\n';
+        }
+      }
+      if (value == '')
+        value = '-';
+
+    } else 
+*/
+    if (name == 'e.data.extensionGenerated') {
+      extGen = true;
+    }
+
+    var cleansedValue = $('<span/>').text(value);
+    if (cleansedValue.html().length > 500) {
+      var id = uid();
+      cleansedValue.attr('id', id);
+      cleansedValue.css('display', 'none');
+
+      (function() {
+        var captureId = id;
+        newSpan.click(function(eventObject) {
+          $('#' + captureId).toggle();
+        });
+      })();
+    }
+    newSpan.append(cleansedValue);
+    newSpan.append('<br/>');
+
+    newDiv.append(newSpan);
+  }
+  
+  if (extGen) {
+    newDiv.addClass('extGen');
+  } else {
+    newDiv.addClass('native');
+  }
+
+  return newDiv;
+  
+}
+
+function getParam(name, parameters) {
   for (var i = 0, ii = parameters.length; i < ii; ++i) {
     var param = parameters[i];
     if (param.name == name)
       return param.value;
   }
   return null;
-}
-
-function getNode(eventOrComment, other) {
-  if (eventOrComment == null)
-    return "";
-
-  var newDiv = $("<div class='boxed wordwrap node'></div>");
-
-  if ('event_type' in eventOrComment) {
-    var e = eventOrComment
-    newDiv.addClass('event ' + e.event_type);
-
-    var extGen = false;
-
-    newDiv.append("<b>[" + e.id + "]type:" + "</b>" + e.event_type + "<br/>");
-    var parameters = e.parameters;
-    parameters = parameters.sort(function(a,b) {
-      a = a.name.toLowerCase();
-      b = b.name.toLowerCase();
-      if (a < b)
-        return -1;
-      else if (a > b)
-        return 1;
-      else
-        return 0;
-    });
-    for (var i = 0, ii = parameters.length; i < ii; ++i) {
-      var param = parameters[i];
-
-      var newSpan = $("<span><b>" + param.name + ":" + "</b></span>");
-      newSpan.addClass(param.name);
-
-      if (other && getParam(other.parameters, param.name) != param.value)
-        newSpan.addClass("diff");
-      else
-        newSpan.addClass('nodiff');
-
-      var value;
-      if (param.name == "deltas") {
-        var valueObj = eval(param.value);
-        value = '';
-        for (var j = 0, jj = valueObj.length; j < jj; ++j) {
-          var delta = valueObj[j];
-          value += delta.type + '\n';
-          if (delta.divergingProp) {
-            var prop = delta.divergingProp;
-            value += prop + ":" +  delta.orig.prop[prop] + " -> " + 
-                     delta.changed.prop[prop] + '\n';
-          }
-        }
-        if (value == '')
-          value = '-';
-
-      } else if (param.name == 'extensionGenerated') {
-        extGen = true;
-      } else {
-        value = param.value;
-      }
-
-      var cleansedValue = $('<span/>').text(value);
-      if (cleansedValue.html().length > 500) {
-        var id = uid();
-        cleansedValue.attr('id', id);
-        cleansedValue.css('display', 'none');
-
-        (function() {
-          var captureId = id;
-          newSpan.click(function(eventObject) {
-            $('#' + captureId).toggle();
-          });
-        })();
-      }
-      newSpan.append(cleansedValue);
-      newSpan.append('<br/>');
-
-      newDiv.append(newSpan);
-    }
-    
-    if (extGen) {
-      newDiv.addClass('extGen');
-    } else {
-      newDiv.addClass('native');
-    }
-
-    return newDiv;
-  } else {
-    var c = eventOrComment;
-    newDiv.addClass('comment');
-    var newSpan = $("<span><b>" + c.name + ":" + "</b>" + c.value +
-                    "<br/></span>");
-    if (other && c.value != other.value)
-      newSpan.addClass("diff");
-
-    newDiv.append(newSpan);
-    return newDiv;
-  }
 }
 
 function lcs(seq1, idx1, seq2, idx2, hash) {
@@ -257,9 +228,9 @@ function lcs(seq1, idx1, seq2, idx2, hash) {
   var cur2 = seq2[idx2];
 
   // found a match
-  if (('event_type' in cur1 && 'event_type' in cur2 &&
-      cur1['event_type'] == cur2['event_type']) ||
-      ('name' in cur1 && 'name' in cur2 && cur1['name'] == cur2['name'])) {
+  var type1 = getParam('e.type', cur1);
+  var type2 = getParam('e.type', cur2);
+  if (type1 === type2) {
     var match = {type:'match', seq1: cur1, seq2: cur2};
     var rest = lcs(seq1, idx1 + 1, seq2, idx2 + 1, hash);
     return {length: rest.length + 1, matches: [match].concat(rest.matches)}
