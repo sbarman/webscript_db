@@ -1,10 +1,11 @@
 'use strict';
 
 var addScript = null;
+var serverUrl = "api/";
 
 (function() {
 
-var server = new ScriptServer("api/")
+var server = new ScriptServer(serverUrl);
 
 var form = $('<form><input id="scriptId" type="text"></form>');
 form.submit(function(e) {
@@ -18,31 +19,23 @@ form.submit(function(e) {
 
 $('#top').append(form);
 
-var w = 1000;
+var w = 960;
 var h = 400;
 
+
+var canvas = d3.select('#top').append('div').append('svg:svg')
+    .attr('width', w)
+    .attr('height', h)
+    .attr('id', 'graphSvg');
+
+$('#top').append('<div id="eventDiv"/>');
+
 var scripts = [];
-
-var canvas = d3.select('#top').append('svg:svg').attr('width', w).attr('height', h);
-
-//var diagonal = d3.svg.diagonal().source(function(d) {
-//  return {x: d.source.x, y: d.source.y};
-//}).target(function(d) {
-//  return {x: d.target.x, y: d.target.y};
-//})
-//.projection(function(d) {
-//  return [d.y, d.x];
-//});
-
-//var lineFunction =  d3.svg.line()
-//  .x(function(d) { return d.x; }
-//  .y(function(d) { return d.y; }
-//  .interpolate('
-
 var nodes = [];
 var eventLinks = [];
 var causalLinks = [];
 
+var d3ScriptIds = canvas.selectAll('.scriptId').data(scripts);
 var d3Nodes = canvas.selectAll('.node').data(nodes);
 var d3EventLinks = canvas.selectAll('.eventlink').data(eventLinks);
 var d3CausalLinks = canvas.selectAll('.causallink').data(causalLinks);
@@ -50,7 +43,7 @@ var d3CausalLinks = canvas.selectAll('.causallink').data(causalLinks);
 var getScriptIndex = function _scriptIndex(scriptId) {
   var scriptIndex = -1;
   for (var i = 0, ii = scripts.length; i < ii; ++i) {
-    if (scripts[i].id == scriptId) {
+    if (scripts[i].id == scriptId || scripts[i].name == scriptId) {
       return i;
     }
   }
@@ -58,7 +51,7 @@ var getScriptIndex = function _scriptIndex(scriptId) {
 }
 
 addScript = function _addScript(scriptId) {
-  if (getScriptIndex(scriptId))
+  if (typeof getScriptIndex(scriptId) == 'number')
     return;
 
   scripts.push({id: scriptId});
@@ -85,6 +78,7 @@ addScript = function _addScript(scriptId) {
         eventIndex: i,
         maxIndex: ii,
         event: e,
+        selected: false,
         x: 0,
         y: 0
       }
@@ -118,6 +112,25 @@ addScript = function _addScript(scriptId) {
 }
 
 function updateD3() {
+
+  d3ScriptIds = canvas.selectAll('.scriptId').data(scripts);
+
+  d3ScriptIds.exit().transition().remove();
+  
+  d3ScriptIds.transition()
+    .attr('x', function(d) { return 0 })
+    .attr('y', function(d, i, t) {
+      return Math.round((i + 1) * (h / (scripts.length + 1))) - 5; 
+    });
+
+  d3ScriptIds.enter().append('text').attr('class', 'scriptId')
+    .text(function(d) { return '(' + d.id + ')' + d.name; })
+    .attr('x', function(d) { return 0 })
+    .attr('y', function(d, i, t) { 
+      return Math.round((i + 1) * (h / (scripts.length + 1))) - 5; 
+    })
+    .attr('font-family', 'Arial')
+
   var numScripts = scripts.length;
   for (var i = 0, ii = nodes.length; i < ii; ++i) {
     var n = nodes[i];
@@ -143,7 +156,17 @@ function updateD3() {
         return 'red';
       }
       return 'grey';
+    })
+    .on('mouseover', function(d) {
+      d3.select(this).transition()
+          .attr('r', 6);
+      showEvent(d.event);
+    })
+    .on('mouseout', function(d) {
+      d3.select(this).transition()
+          .attr('r', 3);
     });
+
 
   d3CausalLinks = canvas.selectAll('.causalLinks').data(causalLinks);
 
@@ -212,6 +235,59 @@ function updateD3() {
     .attr('y2', function(d) { return d.node2.y; })
 }
 
+function showEvent(orig) {
+   function flatten(data, prefix, level) {
+    if (level == 0 || typeof data != 'object')
+      return [{name: prefix, value: JSON.stringify(data)}];
+
+    var collect = [];
+    for (var key in data) {
+      collect = collect.concat(flatten(data[key], prefix + '.' + key, level - 1));
+    }
+    return collect;
+  }
+  
+  var e = flatten(orig, 'e', 2);
+
+  var newDiv = $("<div class='wordwrap node'></div>");
+  newDiv.append("<b>type:" + "</b>" + orig.type + "<br/>");
+  e = e.sort(function(a,b) {
+    a = a.name.toLowerCase();
+    b = b.name.toLowerCase();
+    if (a < b)
+      return -1;
+    else if (a > b)
+      return 1;
+    else
+      return 0;
+  });
+
+  for (var i = 0, ii = e.length; i < ii; ++i) {
+    var param = e[i];
+    var name = param.name;
+    var value = param.value;
+
+    var newSpan = $("<span><b>" + name + ":" + "</b></span>");
+    newSpan.addClass(name);
+
+    var cleansedValue = $('<span/>').text(value);
+    if (cleansedValue.html().length > 500) {
+      cleansedValue.css('display', 'none');
+
+      (function() {
+        newSpan.click(function(eventObject) {
+          cleansedValue.toggle();
+        });
+      })();
+    }
+    newSpan.append(cleansedValue);
+    newSpan.append('<br/>');
+
+    newDiv.append(newSpan);
+  }
+  $('#eventDiv').empty().append(newDiv);
+}
+
 var eventEquality = {
   dom: function domEqual(e1, e2) {
     return e1.target.xpath == e2.target.xpath &&
@@ -236,7 +312,30 @@ var eventEquality = {
 
 })();
 
-var scripts = [1, 31];
-scripts.forEach(function(id) {
-  addScript(id);
-});
+function addScriptGroup(id) {
+  var req = $.ajax({
+    error: function(jqXHR, textStatus, errorThrown) {
+    },
+    success: function(data, textStatus, jqXHR) {
+      data = data.filter(function(script) {
+        return script.name.indexOf(id) == 0;
+      });
+      for (var i = 0, ii = data.length; i < ii; ++i) {
+        addScript(data[i].id);
+      }
+    },
+    complete: function(jqXHR, textSataus) {
+    },
+    contentType: 'application/json',
+    dataType: 'json',
+    processData: false,
+    type: 'GET',
+    timeout: 15000,
+    url: serverUrl + 'script/'
+  });
+}
+
+// var scripts = [1, 31];
+// scripts.forEach(function(id) {
+//   addScript(id);
+// });
