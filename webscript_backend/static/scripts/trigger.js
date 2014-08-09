@@ -20,7 +20,7 @@ form.submit(function(e) {
 $('#top').append(form);
 
 var w = 960;
-var h = 400;
+var h = 100;
 
 
 var canvas = d3.select('#top').append('div').append('svg:svg')
@@ -79,6 +79,7 @@ addScript = function _addScript(scriptId) {
         maxIndex: ii,
         event: e,
         selected: false,
+        relatedEvents: [],
         x: 0,
         y: 0
       }
@@ -96,12 +97,13 @@ addScript = function _addScript(scriptId) {
 
     for (var i = 0, ii = nodes.length; i < ii; ++i) {
       for (var j = 0, jj = newNodes.length; j < jj; ++j) {
-        var oldNode = nodes[i].event;
-        var newNode = newNodes[j].event;
-        if (oldNode.type == newNode.type) {
-          var type = oldNode.type;
-          if (eventEquality[type](oldNode, newNode)) {
-            eventLinks.push({node1: nodes[i], node2: newNodes[j]}); 
+        var oldNode = nodes[i];
+        var newNode = newNodes[j];
+        if (oldNode.event.type == newNode.event.type) {
+          var type = oldNode.event.type;
+          if (eventEquality[type](oldNode.event, newNode.event)) {
+            oldNode.relatedEvents.push(newNode);
+            newNode.relatedEvents.push(oldNode);
           }
         }
       }
@@ -113,23 +115,44 @@ addScript = function _addScript(scriptId) {
 
 function updateD3() {
 
+  if (h / (scripts.length + 1) < 60) {
+    h = (scripts.length + 1) * 60;
+    canvas.attr('height', h);
+  }
+
   d3ScriptIds = canvas.selectAll('.scriptId').data(scripts);
 
   d3ScriptIds.exit().transition().remove();
   
   d3ScriptIds.transition()
-    .attr('x', function(d) { return 0 })
-    .attr('y', function(d, i, t) {
-      return Math.round((i + 1) * (h / (scripts.length + 1))) - 5; 
+    .attr('transform', function(d, i) { 
+      return 'translate(0, ' + 
+        Math.round((i + 1) * (h / (scripts.length + 1))) + ')'; 
     });
 
-  d3ScriptIds.enter().append('text').attr('class', 'scriptId')
-    .text(function(d) { return '(' + d.id + ')' + d.name; })
-    .attr('x', function(d) { return 0 })
-    .attr('y', function(d, i, t) { 
-      return Math.round((i + 1) * (h / (scripts.length + 1))) - 5; 
+  d3ScriptIds.select('text')
+    .text(function(d) { 
+      return '(' + d.id + ')' + d.name; })
+    .select(function() { 
+      return this.nextSibling; })
+    .text(function(d) { 
+      return d.notes; });
+
+
+  d3ScriptIds.enter().append('g').attr('class', 'scriptId')
+    .attr('transform', function(d, i) { 
+      return 'translate(0, ' + 
+        Math.round((i + 1) * (h / (scripts.length + 1))) + ')'; 
     })
     .attr('font-family', 'Arial')
+    .attr('font-size', '.7em')
+    .append('text')
+    .text(function(d) { return '(' + d.id + ')' + d.name; })
+    .attr('dy', '-2.2em')
+    .select(function() { return this.parentElement; })
+    .append('text')
+    .text(function(d) { return d.notes; })
+    .attr('dy', '-1.1em');
 
   var numScripts = scripts.length;
   for (var i = 0, ii = nodes.length; i < ii; ++i) {
@@ -152,10 +175,10 @@ function updateD3() {
     .attr('cy', function(d) { return d.y; })
     .attr('r', 3)
     .attr('fill', function(d) {
-      if (d.event.timing.waitTime === 0) {
-        return 'red';
-      }
-      return 'grey';
+      var type = d.event.type;
+      if (type in typeColor)
+        return typeColor[type];
+      return typeColor.default;
     })
     .on('mouseover', function(d) {
       d3.select(this).transition()
@@ -165,8 +188,29 @@ function updateD3() {
     .on('mouseout', function(d) {
       d3.select(this).transition()
           .attr('r', 3);
-    });
+    })
+    .on('click', function(d) {
+      d.selected = !d.selected;
 
+      var c = 'eventLinks-' + d.scriptIndex + '-' + d.eventIndex;
+      var links = canvas.selectAll('.' + c).data(d.relatedEvents);
+
+      if (d.selected) {
+        links.enter().append('line').attr('class', c)
+          .attr('x1', function(d2) { return d.x; })
+          .attr('y1', function(d2) { return d.y; })
+          .attr('x2', function(d2) { return d2.x; })
+          .attr('y2', function(d2) { return d2.y; })
+          .attr('stroke', 'black')
+          .attr('stroke-width', 1)
+          .attr('fill', 'none');
+      } else {
+        links.remove();
+      }
+    })
+    .filter(function(d) { return d.event.timing.waitTime === 0; })
+    .attr('stroke', 'grey')
+    .attr('stroke-width', '2');
 
   d3CausalLinks = canvas.selectAll('.causalLinks').data(causalLinks);
 
@@ -228,7 +272,7 @@ function updateD3() {
     .attr('stroke-width', 1)
     .attr('fill', 'none');
 
-  d3EventLinks.transition()
+  d3EventLinks
     .attr('x1', function(d) { return d.node1.x; })
     .attr('y1', function(d) { return d.node1.y; })
     .attr('x2', function(d) { return d.node2.x; })
@@ -294,6 +338,9 @@ var eventEquality = {
       e1.frame.URL == e2.frame.URL &&
       e1.data.type == e2.data.type;
   },
+  load: function loadEqual(e1, e2) {
+    return e1.frame.URL == e2.frame.URL;
+  },
   start: function startEqual(e1, e2) {
     return e1.data.method == e2.data.method &&
       e1.data.url == e2.data.url &&
@@ -308,6 +355,14 @@ var eventEquality = {
     return e1.target.xpath == e2.target.xpath &&
       e1.frame.URL == e2.frame.URL;
   }
+};
+
+var typeColor = {
+  'dom': 'blue',
+  'start': 'red',
+  'completed': 'orange',
+  'load': 'brown',
+  'default': 'black'
 };
 
 })();
