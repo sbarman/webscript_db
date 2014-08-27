@@ -37,7 +37,7 @@ var causalLinks = [];
 
 var d3ScriptIds = canvas.selectAll('.scriptId').data(scripts);
 var d3Nodes = canvas.selectAll('.node').data(nodes);
-var d3EventLinks = canvas.selectAll('.eventlink').data(eventLinks);
+// var d3EventLinks = canvas.selectAll('.eventlink').data(eventLinks);
 var d3CausalLinks = canvas.selectAll('.causallink').data(causalLinks);
 
 var getScriptIndex = function _scriptIndex(scriptId) {
@@ -203,7 +203,8 @@ function updateD3() {
           .attr('y2', function(d2) { return d2.y; })
           .attr('stroke', 'black')
           .attr('stroke-width', 1)
-          .attr('fill', 'none');
+          .attr('fill', 'none')
+          .attr('opacity', '.5');
       } else {
         links.remove();
       }
@@ -259,24 +260,25 @@ function updateD3() {
       return path;
     });
 
-  d3EventLinks = canvas.selectAll('.eventLinks').data(eventLinks);
-
-  d3EventLinks.exit().transition().remove();
-
-  d3EventLinks.enter().append('line').attr('class', 'eventLinks')
-    .attr('x1', function(d) { return d.node1.x; })
-    .attr('y1', function(d) { return d.node1.y; })
-    .attr('x2', function(d) { return d.node2.x; })
-    .attr('y2', function(d) { return d.node2.y; })
-    .attr('stroke', 'black')
-    .attr('stroke-width', 1)
-    .attr('fill', 'none');
-
-  d3EventLinks
-    .attr('x1', function(d) { return d.node1.x; })
-    .attr('y1', function(d) { return d.node1.y; })
-    .attr('x2', function(d) { return d.node2.x; })
-    .attr('y2', function(d) { return d.node2.y; })
+//  d3EventLinks = canvas.selectAll('.eventLinks').data(eventLinks);
+//
+//  d3EventLinks.exit().transition().remove();
+//
+//  d3EventLinks.enter().append('line').attr('class', 'eventLinks')
+//    .attr('x1', function(d) { return d.node1.x; })
+//    .attr('y1', function(d) { return d.node1.y; })
+//    .attr('x2', function(d) { return d.node2.x; })
+//    .attr('y2', function(d) { return d.node2.y; })
+//    .attr('stroke', 'rgba(0,0,0,64)')
+//    .attr('stroke-width', 1)
+//    .attr('fill', 'none')
+//    .attr('opacity', '.5');
+//
+//  d3EventLinks
+//    .attr('x1', function(d) { return d.node1.x; })
+//    .attr('y1', function(d) { return d.node1.y; })
+//    .attr('x2', function(d) { return d.node2.x; })
+//    .attr('y2', function(d) { return d.node2.y; })
 }
 
 function showEvent(orig) {
