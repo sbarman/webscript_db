@@ -18,10 +18,13 @@ form.submit(function(e) {
 });
 
 $('#top').append(form);
+$('#top').width($(window).width() - 400);
+$(window).resize(function() {
+  $('#top').width($(window).width() - 400);
+});
 
 var w = 960;
 var h = 100;
-
 
 var canvas = d3.select('#top').append('div').append('svg:svg')
     .attr('width', w)
@@ -118,6 +121,13 @@ function updateD3() {
   if (h / (scripts.length + 1) < 60) {
     h = (scripts.length + 1) * 60;
     canvas.attr('height', h);
+  }
+
+  var maxIndices = nodes.map(function(n) { return n.maxIndex; });
+  var maxIndex = Math.max.apply(null, maxIndices);
+  if (w / maxIndex < 8) {
+    w = maxIndex * 8;
+    canvas.attr('width', w);
   }
 
   d3ScriptIds = canvas.selectAll('.scriptId').data(scripts);

@@ -1,0 +1,43 @@
+#top {
+  width: 960px;
+  overflow-x: auto;
+} 
+
+#eventDiv {
+  font: 15px arial, sans-serif;
+  border: 1px solid black;
+  margin: 3px;
+  float: left;
+  position: fixed;
+  top: 1em;
+  right: 1em;
+  overflow-y: auto;
+  height: 40em;
+  width: 350px;
+}
+
+#graphSvg {
+  float: left;
+}
+
+.boxed {
+  border: 1px solid black;
+  padding: 2px;
+  margin: 3px;
+  width: 480px;
+}
+
+.event {
+  font: 15px arial, sans-serif;
+  border: 1px solid black;
+  overflow: hidden;
+}
+
+.wordwrap { 
+   white-space: pre-wrap;      /* CSS3 */   
+   white-space: -moz-pre-wrap; /* Firefox */    
+   white-space: -pre-wrap;     /* Opera <7 */   
+   white-space: -o-pre-wrap;   /* Opera 7 */    
+   word-wrap: break-word;      /* IE */
+}
+
