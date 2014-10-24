@@ -1,9 +1,6 @@
 'use strict';
 
-var addScript = null;
 var serverUrl = "api/";
-
-(function() {
 
 var server = new ScriptServer(serverUrl);
 
@@ -53,7 +50,7 @@ var getScriptIndex = function _scriptIndex(scriptId) {
   return null;
 }
 
-addScript = function _addScript(scriptId) {
+function addScript(scriptId) {
   if (typeof getScriptIndex(scriptId) == 'number')
     return;
 
@@ -84,7 +81,8 @@ addScript = function _addScript(scriptId) {
         selected: false,
         relatedEvents: [],
         x: 0,
-        y: 0
+        y: 0,
+        highlighted: false
       }
       idToNode[e.meta.id] = o;
       newNodes.push(o);
@@ -183,7 +181,7 @@ function updateD3() {
   node.append('svg:circle')
     .attr('cx', function(d) { return d.x; })
     .attr('cy', function(d) { return d.y; })
-    .attr('r', 3)
+    .attr('r', function(d) { return d.highlighted ? 6 : 3; })
     .attr('fill', function(d) {
       var type = d.event.type;
       if (type in typeColor)
@@ -197,27 +195,10 @@ function updateD3() {
     })
     .on('mouseout', function(d) {
       d3.select(this).transition()
-          .attr('r', 3);
+          .attr('r', d.highlighted ? 6 : 3);
     })
     .on('click', function(d) {
-      d.selected = !d.selected;
-
-      var c = 'eventLinks-' + d.scriptIndex + '-' + d.eventIndex;
-      var links = canvas.selectAll('.' + c).data(d.relatedEvents);
-
-      if (d.selected) {
-        links.enter().append('line').attr('class', c)
-          .attr('x1', function(d2) { return d.x; })
-          .attr('y1', function(d2) { return d.y; })
-          .attr('x2', function(d2) { return d2.x; })
-          .attr('y2', function(d2) { return d2.y; })
-          .attr('stroke', 'black')
-          .attr('stroke-width', 1)
-          .attr('fill', 'none')
-          .attr('opacity', '.5');
-      } else {
-        links.remove();
-      }
+      toggleSelected(d);
     })
     .filter(function(d) { return d.event.timing.waitTime === 0; })
     .attr('stroke', 'grey')
@@ -289,6 +270,27 @@ function updateD3() {
 //    .attr('y1', function(d) { return d.node1.y; })
 //    .attr('x2', function(d) { return d.node2.x; })
 //    .attr('y2', function(d) { return d.node2.y; })
+}
+
+function toggleSelected(d) {
+  d.selected = !d.selected;
+
+  var c = 'eventLinks-' + d.scriptIndex + '-' + d.eventIndex;
+  var links = canvas.selectAll('.' + c).data(d.relatedEvents);
+
+  if (d.selected) {
+    links.enter().append('line').attr('class', c)
+      .attr('x1', function(d2) { return d.x; })
+      .attr('y1', function(d2) { return d.y; })
+      .attr('x2', function(d2) { return d2.x; })
+      .attr('y2', function(d2) { return d2.y; })
+      .attr('stroke', 'black')
+      .attr('stroke-width', 1)
+      .attr('fill', 'none')
+      .attr('opacity', '.5');
+  } else {
+    links.remove();
+  }
 }
 
 function showEvent(orig) {
@@ -377,7 +379,35 @@ var typeColor = {
   'default': 'black'
 };
 
-})();
+function clearSelected() {
+  d3Nodes.filter(function(d) { return d.selected; })
+    .each(function(d) { toggleSelected(d); });
+}
+
+function highlightNode(eventIds) {
+  updateD3();
+
+  d3Nodes.filter(function(d) {
+    return d.scriptIndex == 0 && eventIds.indexOf(d.event.meta.id) >= 0;
+  }).each(function(d) {
+    console.log(d);
+    console.log(this);
+    // d.highlighted = true;
+    d3.select(this.childNodes[0]).attr('r', 6);
+    var related = d.relatedEvents;
+    d3Nodes.filter(function(d1) { 
+      return related.indexOf(d1) >=0;
+    }).each(function(d1) {
+      d3.select(this.childNodes[0]).attr('r', 6);
+    });
+  });
+  updateD3();
+}
+
+function clearHighlight() {
+
+
+}
 
 function addScriptGroup(id) {
   var req = $.ajax({
