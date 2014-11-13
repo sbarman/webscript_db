@@ -94,6 +94,16 @@ function addScript(scriptId) {
           target: idToNode[waitEvent]
         });
       }
+      var triggerCondition = e.timing.triggerCondition;
+      if (triggerCondition) {
+        for (var j = 0, jj = triggerCondition.length; j < jj; ++j) {
+          var triggerEvent = triggerCondition[j].eventId;
+          causalLinks.push({
+            source: o,
+            target: idToNode[triggerEvent]
+          });
+        }
+      }
     }
 
     for (var i = 0, ii = nodes.length; i < ii; ++i) {
@@ -329,6 +339,7 @@ function showEvent(orig) {
     newSpan.addClass(name);
 
     var cleansedValue = $('<span/>').text(value);
+/*
     if (cleansedValue.html().length > 500) {
       cleansedValue.css('display', 'none');
 
@@ -338,6 +349,7 @@ function showEvent(orig) {
         });
       })();
     }
+*/
     newSpan.append(cleansedValue);
     newSpan.append('<br/>');
 
@@ -365,6 +377,11 @@ var eventEquality = {
       e1.data.url == e2.data.url &&
       e1.data.type == e2.data.type;
   },
+  responseStarted: function completedEqual(e1, e2) {
+    return e1.data.method == e2.data.method &&
+      e1.data.url == e2.data.url &&
+      e1.data.type == e2.data.type;
+  },
   capture: function captureEqual(e1, e2) {
     return e1.target.xpath == e2.target.xpath &&
       e1.frame.URL == e2.frame.URL;
@@ -373,9 +390,10 @@ var eventEquality = {
 
 var typeColor = {
   'dom': 'blue',
-  'start': 'red',
-  'completed': 'orange',
+  'start': 'orange',
+  'completed': 'brown',
   'load': 'brown',
+  'responseStarted': 'red',
   'default': 'black'
 };
 
