@@ -3,20 +3,20 @@ from piston.resource import Resource
 from api import handlers
 
 script_handler = Resource(handlers.ScriptHandler)
-script_param_handler = Resource(handlers.ScriptParameterHandler)
+# script_param_handler = Resource(handlers.ScriptParameterHandler)
 event_handler = Resource(handlers.EventHandler)
 param_handler = Resource(handlers.ParameterHandler)
 user_handler = Resource(handlers.UserHandler)
 comment_handler = Resource(handlers.CommentHandler)
 benchmark_handler = Resource(handlers.BenchmarkHandler)
 benchmark_run_handler = Resource(handlers.BenchmarkRunHandler)
-capture_handler = Resource(handlers.CaptureHandler)
+# capture_handler = Resource(handlers.CaptureHandler)
 
 urlpatterns = patterns('',
    url(r'^script/(?P<script_id>\d+)/', script_handler),
    url(r'^script/(?P<script_name>[^/]+)/', script_handler),
-   url(r'^script_param/', script_param_handler),
-   url(r'^script_param/(?P<script_id>\d+)/', script_param_handler),
+#    url(r'^script_param/', script_param_handler),
+#    url(r'^script_param/(?P<script_id>\d+)/', script_param_handler),
    url(r'^script/', script_handler),
    url(r'^event/(?P<event_id>[^/]+)/', event_handler),
    url(r'^event/', event_handler),
@@ -29,6 +29,6 @@ urlpatterns = patterns('',
    url(r'^user/', user_handler),
    url(r'^benchmark/', benchmark_handler),
    url(r'^benchmark_run/', benchmark_run_handler),
-   url(r'^capture/(?P<script_id>\d+)/', capture_handler),
-   url(r'^capture/', capture_handler),
+#    url(r'^capture/(?P<script_id>\d+)/', capture_handler),
+#    url(r'^capture/', capture_handler),
 )

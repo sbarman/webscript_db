@@ -10,17 +10,17 @@ class InlineEvent(admin.TabularInline):
     fields = ('event_type', 'execution_order')
     ordering = ['script', 'execution_order']
 
-class InlineParam(admin.TabularInline):
-    model = models.ScriptParameter
-
-    date_hierarchy = 'creation_date'
-    fields = ('name', 'value')
-    ordering = ['name']
+# class InlineParam(admin.TabularInline):
+#     model = models.ScriptParameter
+# 
+#     date_hierarchy = 'creation_date'
+#     fields = ('name', 'value')
+#     ordering = ['name']
 
 class ScriptAdmin(admin.ModelAdmin):
     actions = ['delete_script', 'copy_script']
     date_hierarchy = 'creation_date'
-    inlines =  [InlineEvent, InlineParam]
+    inlines =  [InlineEvent]
     list_display = ('name', 'id', 'user', 'creation_date', 'notes', 'parent')
     list_filter = ('user__username',)
     search_fields = ('^name', 'notes', '^user__username')
@@ -53,13 +53,13 @@ class ScriptAdmin(admin.ModelAdmin):
 
     copy_script.short_description = "Make a shallow copy of the script" 
 
-class ScriptParameterAdmin(admin.ModelAdmin):
-    date_hierarchy = 'creation_date'
-    list_display = ('name', 'value', 'script')
-    list_filter = ('script__name', 'script__id',
-                   'script__user__username', 'value')
-    ordering = ['id', 'name']
-    search_fields = ('name', 'value')
+# class ScriptParameterAdmin(admin.ModelAdmin):
+#     date_hierarchy = 'creation_date'
+#     list_display = ('name', 'value', 'script')
+#     list_filter = ('script__name', 'script__id',
+#                    'script__user__username', 'value')
+#     ordering = ['id', 'name']
+#     search_fields = ('name', 'value')
 
 class InlineParameter(admin.TabularInline):
     model = models.Parameter
@@ -132,17 +132,17 @@ class BenchmarkRunAdmin(admin.ModelAdmin):
     list_filter = ('benchmark__script__name', 'benchmark__script__id')
     ordering = ['id', 'benchmark__script__id']
 
-class CaptureAdmin(admin.ModelAdmin):
-    date_hierarchy = 'creation_date'
-    list_display = ('script', 'nodeName')
-    list_filter = ('script__name', 'script__id')
-    ordering = ['id', 'script__id']
+# class CaptureAdmin(admin.ModelAdmin):
+#     date_hierarchy = 'creation_date'
+#     list_display = ('script', 'nodeName')
+#     list_filter = ('script__name', 'script__id')
+#     ordering = ['id', 'script__id']
 
 admin.site.register(models.Script, ScriptAdmin)
-admin.site.register(models.ScriptParameter, ScriptParameterAdmin)
+# admin.site.register(models.ScriptParameter, ScriptParameterAdmin)
 admin.site.register(models.Event, EventAdmin)
 admin.site.register(models.Parameter, ParameterAdmin)
 admin.site.register(models.Comment, CommentAdmin)
 admin.site.register(models.Benchmark, BenchmarkAdmin)
 admin.site.register(models.BenchmarkRun, BenchmarkRunAdmin)
-admin.site.register(models.Capture, CaptureAdmin)
+# admin.site.register(models.Capture, CaptureAdmin)
