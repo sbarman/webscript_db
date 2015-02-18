@@ -10,6 +10,10 @@ class Script(models.Model):
                                    "script does.", blank=True)
     notes = models.TextField(help_text="Comments, questions, problems, etc.",
                              blank=True)
+    params = models.TextField(help_text="Comments, questions, problems, etc.",
+                             blank=True)
+    captures = models.TextField(help_text="Comments, questions, problems, etc.",
+                             blank=True)
     user = models.ForeignKey(User,
                              help_text="The user who submitted the script.")
     creation_date = models.DateTimeField(auto_now_add=True)
@@ -25,31 +29,26 @@ class Script(models.Model):
     class Meta:
         ordering = ['creation_date']
 
-class ScriptParameter(models.Model):
-    name = models.CharField(max_length=64)
-    value = models.TextField(blank=True)
-
-    script = models.ForeignKey('Script', blank=True, null=True, default=None,
-                              related_name="parameters")
-
-    creation_date = models.DateTimeField(auto_now_add=True)
-    modification_date = models.DateTimeField(auto_now=True, auto_now_add=True)
-
-    def __unicode__(self):
-        value = self.value
-        if len(value) > 32:
-            value = value[:32]
-        return u'Param: {} - {} --> Script: {}'.\
-               format(self.name, value, self.script)
+# class ScriptParameter(models.Model):
+#     name = models.CharField(max_length=64)
+#     value = models.TextField(blank=True)
+# 
+#     script = models.ForeignKey('Script', blank=True, null=True, default=None,
+#                               related_name="parameters")
+# 
+#     creation_date = models.DateTimeField(auto_now_add=True)
+#     modification_date = models.DateTimeField(auto_now=True, auto_now_add=True)
+# 
+#     def __unicode__(self):
+#         value = self.value
+#         if len(value) > 32:
+#             value = value[:32]
+#         return u'Param: {} - {} --> Script: {}'.\
+#                format(self.name, value, self.script)
 
 class Event(models.Model):
     event_type = models.CharField(max_length=128, help_text="The type of " + 
                                   "event to be replayed.")
-    version = models.CharField(max_length=32,
-                               help_text="Event Format version for Event. " \
-                               "Intended to allow backwards incompatible " \
-                               "changes.", default="1.0")
-
     script = models.ForeignKey('Script',
                                related_name="events",
                                help_text="The script this event belongs to.")
@@ -138,15 +137,15 @@ class BenchmarkRun(models.Model):
     def __unicode__(self):
         return unicode(self.benchmark) + " " + unicode(self.successful)
    
-class Capture(models.Model):
-    script = models.ForeignKey('Script', blank=False, null=False)
-    innerHtml = models.TextField(null=False)
-    innerText = models.TextField(null=False)
-    nodeName = models.TextField(null=False)
-    
-    creation_date = models.DateTimeField(auto_now_add=True)
-    modification_date = models.DateTimeField(auto_now=True, auto_now_add=True)
-     
-    def __unicode__(self):
-        return unicode(self.script) + " " + self.nodeName + " " + \
-               self.innerHtml[:32]
+# class Capture(models.Model):
+#     script = models.ForeignKey('Script', blank=False, null=False)
+#     innerHtml = models.TextField(null=False)
+#     innerText = models.TextField(null=False)
+#     nodeName = models.TextField(null=False)
+#     
+#     creation_date = models.DateTimeField(auto_now_add=True)
+#     modification_date = models.DateTimeField(auto_now=True, auto_now_add=True)
+#      
+#     def __unicode__(self):
+#         return unicode(self.script) + " " + self.nodeName + " " + \
+#                self.innerHtml[:32]

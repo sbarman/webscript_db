@@ -23,6 +23,8 @@ class ScriptHandler(BaseHandler):
     fields = ('name',
               'notes',
               'description',
+              'params',
+              'captures',
               'id',
               ('parent', ('id',)),
               ('user', (),),
@@ -55,6 +57,12 @@ class ScriptHandler(BaseHandler):
             if 'description' in data:
                 script.description = data['description']
 
+            if 'params' in data:
+                script.params = data['params']
+
+            if 'captures' in data:
+                script.captures = data['captures']
+
             if 'parent_id' in data:
                 parent = models.Script.objects.get(pk=data['parent_id'])
                 script.parent = parent
@@ -77,56 +85,56 @@ class ScriptHandler(BaseHandler):
         else:
             super(ScriptHandler, self).create(request)
 
-class ScriptParameterHandler(BaseHandler):
-    allowed_methods = ('GET', 'POST')
-    fields = ('name',
-              'value',
-              'id',
-              ('script', ('id',)),
-             )
-    model = models.ScriptParameter
-
-    def read(self, request, script_id=None):
-        base = self.model.objects
-
-        if script_id:
-            return base.filter(script=int(script_id))
-        else:
-            return base.all()
-
-    def create(self, request):
-        if request.content_type:
-            data = request.data
-
-            if 'script_id' not in data:
-                resp = rc.BAD_REQUEST
-                resp.write('Must include script_id: {"script_id": <id>, '
-                           '"params": [...], }')
-                return resp
-
-            script = models.Script.objects.get(pk=data['script_id'])
-
-            # Bail if there is no events
-            if 'params' not in data:
-                resp = rc.BAD_REQUEST
-                resp.write('Must include list of events: {"script_id": <id>, '
-                           '"params": [...], }')
-                return resp
-
-            # Handle all of the events
-            for param_data in data['params']:
-                param = self.model()
-                param.script = script
-
-                if 'name' in param_data and 'value' in param_data:
-                    param.name = param_data['name']
-                    param.value = param_data['value']
-
-                param.save()
-
-            return True
-        else:
-            super(EventHandler, self).create(request)
+# class ScriptParameterHandler(BaseHandler):
+#     allowed_methods = ('GET', 'POST')
+#     fields = ('name',
+#               'value',
+#               'id',
+#               ('script', ('id',)),
+#              )
+#     model = models.ScriptParameter
+# 
+#     def read(self, request, script_id=None):
+#         base = self.model.objects
+# 
+#         if script_id:
+#             return base.filter(script=int(script_id))
+#         else:
+#             return base.all()
+# 
+#     def create(self, request):
+#         if request.content_type:
+#             data = request.data
+# 
+#             if 'script_id' not in data:
+#                 resp = rc.BAD_REQUEST
+#                 resp.write('Must include script_id: {"script_id": <id>, '
+#                            '"params": [...], }')
+#                 return resp
+# 
+#             script = models.Script.objects.get(pk=data['script_id'])
+# 
+#             # Bail if there is no events
+#             if 'params' not in data:
+#                 resp = rc.BAD_REQUEST
+#                 resp.write('Must include list of events: {"script_id": <id>, '
+#                            '"params": [...], }')
+#                 return resp
+# 
+#             # Handle all of the events
+#             for param_data in data['params']:
+#                 param = self.model()
+#                 param.script = script
+# 
+#                 if 'name' in param_data and 'value' in param_data:
+#                     param.name = param_data['name']
+#                     param.value = param_data['value']
+# 
+#                 param.save()
+# 
+#             return True
+#         else:
+#             super(EventHandler, self).create(request)
 
 class EventHandler(BaseHandler):
     allowed_methods = ('GET', 'POST')  # 'PUT')
@@ -177,9 +185,6 @@ class EventHandler(BaseHandler):
 
                 if 'execution_order' in event_data:
                     event.execution_order = event_data['execution_order']
-
-                if 'version' in event_data:
-                    event.version = event_data['version']
 
                 event.save()
 
@@ -335,42 +340,42 @@ class BenchmarkRunHandler(BaseHandler):
         else:
             super(BenchmarkRunHandler, self).create(request)
 
-class CaptureHandler(BaseHandler):
-    allowed_methods = ('GET', 'POST')  # 'PUT')
-    fields = ('innerHtml',
-              'innerText',
-              'nodeName',
-              ('script', ('id','name')),
-             )
-    model = models.Capture
-
-    def read(self, request, script_id=None):
-        base = self.model.objects
-
-        if script_id:
-            return base.filter(script=script_id).latest('creation_date')
-        else:
-            return base.all()  # Or base.filter(...)
-
-    def create(self, request):
-        if request.content_type:
-            data = request.data
-            capture = self.model()
-
-            if ('innerHtml' not in data) or \
-               ('nodeName' not in data) or \
-               ('innerText' not in data) or \
-               ('script' not in data):
-                resp = rc.BAD_REQUEST
-                resp.write('Must include required fields')
-                return resp
-
-            capture.innerHtml = data['innerHtml']
-            capture.nodeName = data['nodeName']
-            capture.innerText = data['innerText']
-            capture.script = models.Script.objects.get(pk=data['script'])
-
-            capture.save()
-            return True
-        else:
-            super(CaptureHandler, self).create(request)
+# class CaptureHandler(BaseHandler):
+#     allowed_methods = ('GET', 'POST')  # 'PUT')
+#     fields = ('innerHtml',
+#               'innerText',
+#               'nodeName',
+#               ('script', ('id','name')),
+#              )
+#     model = models.Capture
+# 
+#     def read(self, request, script_id=None):
+#         base = self.model.objects
+# 
+#         if script_id:
+#             return base.filter(script=script_id).latest('creation_date')
+#         else:
+#             return base.all()  # Or base.filter(...)
+# 
+#     def create(self, request):
+#         if request.content_type:
+#             data = request.data
+#             capture = self.model()
+# 
+#             if ('innerHtml' not in data) or \
+#                ('nodeName' not in data) or \
+#                ('innerText' not in data) or \
+#                ('script' not in data):
+#                 resp = rc.BAD_REQUEST
+#                 resp.write('Must include required fields')
+#                 return resp
+# 
+#             capture.innerHtml = data['innerHtml']
+#             capture.nodeName = data['nodeName']
+#             capture.innerText = data['innerText']
+#             capture.script = models.Script.objects.get(pk=data['script'])
+# 
+#             capture.save()
+#             return True
+#         else:
+#             super(CaptureHandler, self).create(request)
