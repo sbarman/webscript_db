@@ -293,6 +293,7 @@ class BenchmarkRunHandler(BaseHandler):
               'notes'
               'log',
               'id',
+              'captures',
               ('benchmark', ('id',)),
              )
     model = models.BenchmarkRun
@@ -309,7 +310,9 @@ class BenchmarkRunHandler(BaseHandler):
             if ('benchmark' not in data) or \
                ('successful' not in data) or \
                ('events_total' not in data) or \
-               ('events_executed' not in data):
+               ('events_executed' not in data) or \
+               ('captures' not in data) or \
+               ('time' not in data):
                 resp = rc.BAD_REQUEST
                 resp.write('Must include required fields')
                 return resp
@@ -332,6 +335,8 @@ class BenchmarkRunHandler(BaseHandler):
             run.events_executed = data['events_executed']
             run.events_total = data['events_total']
             run.successful = data['successful']
+            run.captures = data['captures']
+            run.time = data['time']
 
             run.benchmark = models.Benchmark.objects.get(pk=data['benchmark'])
 

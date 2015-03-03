@@ -124,15 +124,18 @@ class BenchmarkRun(models.Model):
                                   related_name='benchmark_runs')
     creation_date = models.DateTimeField(auto_now_add=True)
     modification_date = models.DateTimeField(auto_now=True, auto_now_add=True)
-    errors = models.TextField(help_text="Errors raised during execution",
-                              blank=True, null=True)
     events_executed = models.FloatField(help_text="Execution order of last " +
                                         "event executed in replay")
     events_total = models.FloatField(help_text="Execution order of last " +
                                         "event executed in replay")
-    notes = models.TextField(help_text="Misc notes", blank=True, null=True)
-    log = models.TextField(help_text="Info log", blank=True, null=True, default="")
+    time = models.FloatField(help_text="Time of execution")
     successful = models.BooleanField()
+    captures = models.TextField(help_text="Value of captures",
+                                         blank=True, null=False)
+    notes = models.TextField(help_text="Misc notes", blank=True, null=True)
+    errors = models.TextField(help_text="Errors raised during execution",
+                              blank=True, null=True)
+    log = models.TextField(help_text="Info log", blank=True, null=True, default="")
 
     def __unicode__(self):
         return unicode(self.benchmark) + " " + unicode(self.successful)
