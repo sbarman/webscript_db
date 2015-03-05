@@ -339,7 +339,7 @@ function showEvent(orig) {
     newSpan.addClass(name);
 
     var cleansedValue = $('<span/>').text(value);
-/*
+
     if (cleansedValue.html().length > 500) {
       cleansedValue.css('display', 'none');
 
@@ -349,7 +349,7 @@ function showEvent(orig) {
         });
       })();
     }
-*/
+
     newSpan.append(cleansedValue);
     newSpan.append('<br/>');
 
