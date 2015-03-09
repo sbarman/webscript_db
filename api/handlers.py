@@ -2,6 +2,7 @@ from piston.handler import BaseHandler
 from piston.utils import rc, throttle
 from piston.utils import validate
 from django.contrib.auth.models import User
+import HTMLParser
 
 from webscript_backend import models
 
@@ -38,6 +39,9 @@ class ScriptHandler(BaseHandler):
         base = models.Script.objects
 
         if script_name:
+            print script_name
+            script_name = HTMLParser.HTMLParser().unescape(script_name)
+            print script_name
             return base.filter(name=script_name)
         elif script_id:
             return base.filter(pk=script_id)
@@ -273,8 +277,9 @@ class CommentHandler(BaseHandler):
             super(CommentHandler, self).create(request)
 
 class BenchmarkHandler(BaseHandler):
-    allowed_methods = ('GET',)  # 'PUT')
-    fields = ('success_captures',
+    allowed_methods = ('GET', 'POST')  # 'PUT')
+    fields = ('name',
+              'success_captures',
               'id',
               ('script', ('id', 'name')),
              )
@@ -283,6 +288,30 @@ class BenchmarkHandler(BaseHandler):
     def read(self, request):
         base = models.Benchmark.objects
         return base.filter(enabled=True)
+
+    def create(self, request):
+        if request.content_type:
+            data = request.data
+            benchmark = self.model()
+
+            if ('script' not in data) or \
+               ('name' not in data) or \
+               ('success_captures' not in data) or \
+               ('enabled' not in data):
+                resp = rc.BAD_REQUEST
+                resp.write('Must include required fields')
+                return resp
+
+            benchmark.success_captures = data['success_captures']
+            benchmark.enabled = data['enabled']
+            benchmark.name = data['name']
+
+            benchmark.script = models.Script.objects.get(pk=data['script'])
+
+            benchmark.save()
+            return True
+        else:
+            super(BenchmarkHandler, self).create(request)
 
 class BenchmarkRunHandler(BaseHandler):
     allowed_methods = ('GET', 'POST')  # 'PUT')
