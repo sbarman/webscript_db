@@ -7,9 +7,28 @@ var server = new ScriptServer(serverUrl);
 var form = $('<form><input id="scriptId" type="text"></form>');
 form.submit(function(e) {
   var scriptId = $('#scriptId').attr('value');
-  if (!isNaN(scriptId)) {
-    console.log(scriptId);
-    addScript(parseInt(scriptId));
+  var scriptQuery = scriptId;
+
+  var ranges = scriptQuery.split(',').map(function(r) {return r.split('-');});
+
+  for(var i = 0, ii = ranges.length; i < ii; ++i) {
+    var range = ranges[i];
+    if (range.length == 1) {
+      var scriptId = range[0];
+      if (!isNaN(scriptId)) {
+        console.log(scriptId);
+        addScript(parseInt(scriptId));
+      }
+    } else if (range.length == 2) {
+      var start = range[0];
+      var end = range[1];
+      if (!isNaN(start) && !isNaN(end)) {
+        for (var j = parseInt(start), jj = parseInt(end); j <= jj; ++j) {
+          console.log(j);
+          addScript(j);
+        }
+      }
+    }
   }
   return false;
 });
