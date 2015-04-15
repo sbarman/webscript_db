@@ -309,7 +309,7 @@ class BenchmarkHandler(BaseHandler):
             benchmark.script = models.Script.objects.get(pk=data['script'])
 
             benchmark.save()
-            return True
+            return benchmark
         else:
             super(BenchmarkHandler, self).create(request)
 
@@ -318,12 +318,14 @@ class BenchmarkRunHandler(BaseHandler):
     fields = ('errors',
               'events_executed',
               'events_total',
+              'time',
               'successful',
               'notes'
               'log',
               'id',
               'captures',
-              ('benchmark', ('id',)),
+              'creation_date',
+              ('benchmark', ('id','name')),
              )
     model = models.BenchmarkRun
 

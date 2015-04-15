@@ -31,3 +31,6 @@ def demoUpdate(request):
 
 def trigger(request):
     return render(request, 'trigger.html', {})
+
+def benchmark(request):
+    return render(request, 'benchmark.html', {})

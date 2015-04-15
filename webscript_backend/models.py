@@ -110,7 +110,7 @@ class Comment(models.Model):
                format(self.name, self.value, self.script)
 
 class Benchmark(models.Model):
-    name = models.CharField(max_length=64)
+    name = models.CharField(max_length=128)
     script = models.ForeignKey('Script', blank=False, null=False)
     success_captures = models.TextField(help_text="Value of captures to " +
                                          "check if benchmark was successful",
@@ -118,7 +118,7 @@ class Benchmark(models.Model):
     enabled = models.BooleanField()
 
     def __unicode__(self):
-        return unicode(self.script)
+        return unicode(self.name)
     
 class BenchmarkRun(models.Model):
     benchmark = models.ForeignKey('Benchmark', blank=False, null=False,

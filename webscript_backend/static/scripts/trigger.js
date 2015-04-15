@@ -363,8 +363,9 @@ function showEvent(orig) {
       cleansedValue.css('display', 'none');
 
       (function() {
+        var _cleansedValue = cleansedValue;
         newSpan.click(function(eventObject) {
-          cleansedValue.toggle();
+          _cleansedValue.toggle();
         });
       })();
     }
