@@ -111,6 +111,8 @@ class Comment(models.Model):
 
 class Benchmark(models.Model):
     name = models.CharField(max_length=128)
+    creation_date = models.DateTimeField(auto_now_add=True)
+    modification_date = models.DateTimeField(auto_now=True, auto_now_add=True)
     script = models.ForeignKey('Script', blank=False, null=False)
     success_captures = models.TextField(help_text="Value of captures to " +
                                          "check if benchmark was successful",
@@ -128,11 +130,14 @@ class BenchmarkRun(models.Model):
     events_executed = models.FloatField(help_text="Execution order of last " +
                                         "event executed in replay")
     events_total = models.FloatField(help_text="Execution order of last " +
-                                        "event executed in replay")
+                                        "event of benchmark")
     time = models.FloatField(help_text="Time of execution")
-    successful = models.BooleanField()
+    successful = models.BooleanField(help_text="Whether the run succeeded")
     captures = models.TextField(help_text="Value of captures",
                                          blank=True, null=False)
+    trigger_timeouts = models.IntegerField(help_text="Number of timeouts on triggers")
+    element_timeouts = models.IntegerField(help_text="Number of timeouts when element cannot be found")
+    version = models.TextField(help_text="Version of benchmark", blank=True, null=True)
     notes = models.TextField(help_text="Misc notes", blank=True, null=True)
     errors = models.TextField(help_text="Errors raised during execution",
                               blank=True, null=True)

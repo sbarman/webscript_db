@@ -113,8 +113,8 @@ class CommentAdmin(admin.ModelAdmin):
 
 class BenchmarkAdmin(admin.ModelAdmin):
     actions  = ['disable_benchmark']
-    list_display = ('id', 'name', 'script', 'script_id', 'success_captures',
-                    'enabled')
+    list_display = ('id', 'name', 'script', 'script_id', 'creation_date',
+                    'success_captures', 'enabled')
     def script_id(self, obj):
         return obj.script.id
     script_id.short_description = 'Script ID'
@@ -139,8 +139,9 @@ class BenchmarkRunAdmin(admin.ModelAdmin):
     display_errors.short_description = 'errors'
 
     date_hierarchy = 'creation_date'
-    list_display = ('benchmark', 'creation_date', 'successful', 
-                    'events_executed', 'time', 'notes', 'display_errors')
+    list_display = ('benchmark', 'version', 'creation_date', 'successful', 
+                    'events_executed', 'time', 'element_timeouts',
+                    'trigger_timeouts', 'notes', 'display_errors')
     list_filter = ('benchmark__script__name', 'benchmark__script__id')
     ordering = ['id', 'benchmark__script__id']
 
