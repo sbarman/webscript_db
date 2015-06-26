@@ -281,6 +281,7 @@ class BenchmarkHandler(BaseHandler):
     fields = ('name',
               'success_captures',
               'id',
+              'creation_date',
               ('script', ('id', 'name')),
              )
     model = models.Benchmark
@@ -325,6 +326,9 @@ class BenchmarkRunHandler(BaseHandler):
               'id',
               'captures',
               'creation_date',
+              'trigger_timeouts',
+              'element_timeouts',
+              'version',
               ('benchmark', ('id','name')),
              )
     model = models.BenchmarkRun
@@ -348,6 +352,14 @@ class BenchmarkRunHandler(BaseHandler):
                 resp.write('Must include required fields')
                 return resp
 
+            run.events_executed = data['events_executed']
+            run.events_total = data['events_total']
+            run.successful = data['successful']
+            run.captures = data['captures']
+            run.time = data['time']
+
+            run.benchmark = models.Benchmark.objects.get(pk=data['benchmark'])
+
             if 'errors' in data:
                 run.errors = data['errors']
             else:
@@ -363,13 +375,20 @@ class BenchmarkRunHandler(BaseHandler):
             else:
                 run.log = ""
 
-            run.events_executed = data['events_executed']
-            run.events_total = data['events_total']
-            run.successful = data['successful']
-            run.captures = data['captures']
-            run.time = data['time']
+            if 'trigger_timeouts' in data:
+                run.trigger_timeouts = data['trigger_timeouts']
+            else:
+                run.log = -1
 
-            run.benchmark = models.Benchmark.objects.get(pk=data['benchmark'])
+            if 'element_timeouts' in data:
+                run.element_timeouts = data['element_timeouts']
+            else:
+                run.element_timeouts = -1
+
+            if 'version' in data:
+                run.version = data['version']
+            else:
+                run.version = ""
 
             run.save()
             return True
