@@ -13,7 +13,7 @@ benchmark_run_handler = Resource(handlers.BenchmarkRunHandler)
 # capture_handler = Resource(handlers.CaptureHandler)
 
 urlpatterns = patterns('',
-   url(r'^script/(?P<script_id>\d+)/', script_handler),
+   url(r'^script/(?P<script_id>[0-9]+)/', script_handler),
    url(r'^script/(?P<script_name>[^/]+)/', script_handler),
 #    url(r'^script_param/', script_param_handler),
 #    url(r'^script_param/(?P<script_id>\d+)/', script_param_handler),

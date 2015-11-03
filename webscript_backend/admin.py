@@ -143,7 +143,7 @@ class BenchmarkRunAdmin(admin.ModelAdmin):
                     'events_executed', 'time', 'element_timeouts',
                     'trigger_timeouts', 'notes', 'display_errors')
     list_filter = ('benchmark__script__name', 'benchmark__script__id')
-    ordering = ['id', 'benchmark__script__id']
+    ordering = ['-id', '-benchmark__script__id']
 
 # class CaptureAdmin(admin.ModelAdmin):
 #     date_hierarchy = 'creation_date'
