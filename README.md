@@ -1,7 +1,7 @@
 webscript_db
 ============
 
-A web-interface and database backend for 'webscript'.
+A web-interface and database backend for Ringer.
 
 Quick Setup
 -----------------
